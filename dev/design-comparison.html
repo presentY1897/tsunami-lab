@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>쓰나미 랩 — 와이어프레임 시안 비교</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#101316;color:#eceded;font-family:system-ui,-apple-system,'Malgun Gothic',sans-serif}main{max-width:1680px;margin:auto;padding:36px 40px}header{display:flex;justify-content:space-between;align-items:end;gap:24px;margin-bottom:28px}.eyebrow{font-size:11px;letter-spacing:.16em;color:#8f9a9f;margin-bottom:10px}h1{font-size:30px;letter-spacing:-.05em;margin:0;font-weight:550}header p{font-size:13px;color:#a8b1b5;margin:0;line-height:1.8}.controls{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px}button{border:1px solid #394248;border-radius:6px;background:transparent;color:#a8b1b5;font:inherit;font-size:13px;padding:9px 17px;cursor:pointer}button[aria-pressed=true]{background:#e6eaea;color:#101316;border-color:#e6eaea}.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}.label{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.label b{font-size:17px;font-weight:550}.label span{font-size:11px;color:#96a3a8;letter-spacing:.06em}figure{margin:0}img{display:block;width:100%;height:auto;border:1px solid #30383c;border-radius:8px}figcaption{font-size:13px;line-height:1.8;color:#a8b1b5;margin-top:14px}.legend{display:flex;gap:22px;flex-wrap:wrap;margin-top:24px;padding-top:18px;border-top:1px solid #30383c;font-size:12px;color:#a8b1b5}.legend span{display:flex;align-items:center;gap:9px}.line{display:inline-block;width:24px;border-top:1px solid #e0e8e7}.faint{opacity:.35}.dash{border-top-style:dashed}footer{font-size:12px;line-height:1.8;color:#77858d;margin-top:16px}a{color:#d5e1e4}.note{margin-top:14px;color:#c3cdcf;font-size:13px}@media(max-width:760px){main{padding:24px 18px}header{display:block}header p{margin-top:12px}.grid{grid-template-columns:1fr}h1{font-size:26px}}
+</style>
+<main>
+<header><div><div class="eyebrow">TSUNAMI LAB / DESIGN STUDY 03</div><h1>삼각형의 모서리로 드러내는 지형</h1></div><p>동일한 지진 · 동일한 계산 시각 · 동일한 카메라<br>도호쿠 규모 9.0 / 약 72분 / 실제 앱 렌더링</p></header>
+<div class="controls" aria-label="비교 장면"><button aria-pressed="true" data-scene="regional">01 바다 전체</button><button aria-pressed="false" data-scene="coast">02 해안 확대</button></div>
+<div class="grid">
+<figure><div class="label"><b>A — 현재 표현</b><span>COLOR / SURFACE</span></div><img id="color" src="shots/design-regional-color.png" alt="현재 색상 표현으로 표시한 쓰나미"><figcaption>지형의 고도·수심과 파도의 마루·골을 색으로 구분합니다.<br>삼각형 면과 수면의 기복이 화면에 강하게 드러납니다.</figcaption></figure>
+<figure><div class="label"><b id="variantTitle">B — 와이어프레임 시안</b><span id="variantLabel">MONO / WIREFRAME</span></div><img id="lines" src="shots/design-regional-wireframe.png" alt="삼각형 모서리로 표현한 지형과 파도"><figcaption id="variantCaption">지형과 수면의 삼각형 모서리를 가는 선으로 드러냅니다.<br>파도가 지나는 부분과 침수 영역의 선은 밝게 표시합니다.</figcaption></figure>
+</div>
+<div class="legend"><span><i class="line faint"></i>잔잔한 표면</span><span><i class="line"></i>파도가 지나는 표면</span><span>가려진 뒷면은 표시하지 않습니다.</span></div>
+<p class="note" id="note">비교 포인트: 삼각형 선으로 지형의 입체감과 파도의 위치가 읽히는지 살펴보세요.</p>
+<footer>선은 화면에 그리는 삼각형 메시의 모서리입니다. 계산 격자를 뜻하지 않으며 확대 수준에 따라 세분화됩니다. 지형과 파도 높이에는 기존 앱의 과장이 적용됩니다.<br><a href="http://localhost:5190/?style=wireframe&lon=142.85&lat=38.3&kind=quake&mw=9&strike=193" target="_blank" rel="noopener">실제 앱에서 표현 전환하기 ↗</a> · 상단 ‘표현’ 단추로 색상과 와이어프레임을 전환할 수 있습니다.</footer>
+</main>
+<script>
+for (const button of document.querySelectorAll('[data-scene]')) button.onclick = () => {
+ const scene = button.dataset.scene;
+ for (const b of document.querySelectorAll('[data-scene]')) b.setAttribute('aria-pressed', String(b === button));
+ document.getElementById('color').src = `shots/design-${scene}-color.png`;
+ document.getElementById('lines').src = `shots/design-${scene}-wireframe.png`;
+};
+</script>
+</html>
