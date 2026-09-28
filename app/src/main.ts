@@ -499,6 +499,8 @@ async function start(): Promise<void> {
     const src = currentSource();
     const u = new URL(location.href);
     u.searchParams.set('lang', getLocale());
+    if (terrain.seaLevel) u.searchParams.set('sea', String(terrain.seaLevel));
+    else u.searchParams.delete('sea');
     for (const k of ['lon', 'lat', 'kind', 'mw', 'strike', 'fl', 'fw', 'diam', 'vel', 'rho', 'coast']) u.searchParams.delete(k);
     if (src) {
       u.searchParams.set('lon', src.lon.toFixed(3)); u.searchParams.set('lat', src.lat.toFixed(3)); u.searchParams.set('kind', src.kind);
@@ -512,6 +514,7 @@ async function start(): Promise<void> {
   };
   const readUrl = (): void => {
     const q = new URLSearchParams(location.search);
+    setSeaLevel(Number(q.get('sea')), false);
     const lon = Number(q.get('lon')), lat = Number(q.get('lat'));
     if (!q.has('lon') || !Number.isFinite(lon) || !Number.isFinite(lat)) return;
     kind = q.get('kind') === 'impact' ? 'impact' : 'quake';
@@ -556,6 +559,8 @@ async function start(): Promise<void> {
     const q = currentSource();
     if (!q || starting) return;
     starting = true;
+    $<HTMLInputElement>('seaLevel').disabled = true;
+    $<HTMLButtonElement>('seaLevelReset').disabled = true;
     try {
       stopSim();
       // 격자 단계: 전 지구, 발생원 주변, 그리고 해안을 골랐으면 그 해안까지의 사슬
@@ -579,7 +584,7 @@ async function start(): Promise<void> {
         const parentUncorrected = sp.parent >= 0 && (plan[sp.parent].role === 'global' || plan[sp.parent].role === 'source');
         return { gainRef: uncorrected ? model.gainRef : 0, gainRelaxRef: parentUncorrected && !uncorrected ? model.gainRef : 0, gainSrc: srcDir };
       };
-      const built = buildGlobalGrid(earth, model);
+      const built = buildGlobalGrid(earth, model, terrain.seaLevel);
       const inputs: LevelInput[] = [{ grid: built.grid.input, parent: -1, options: gainOf(plan[0]) }];
       let maxUp = built.source.maxUp;
       for (const sp of plan.slice(1)) {
@@ -659,6 +664,8 @@ async function start(): Promise<void> {
       text('readout', () => t(error instanceof LocalizedError ? error.key : 'error.sim'));
     } finally {
       starting = false;
+      $<HTMLInputElement>('seaLevel').disabled = false;
+      $<HTMLButtonElement>('seaLevelReset').disabled = false;
     }
   };
 
@@ -667,6 +674,26 @@ async function start(): Promise<void> {
     text('pickCoast', () => t(pickMode === 'coast' ? 'coast.tap' : coast ? 'coast.reselect' : 'coast.select'));
   };
   $('pickCoast').addEventListener('click', () => { pickMode = pickMode === 'coast' ? 'source' : 'coast'; showCoast(); });
+
+  const setSeaLevel = (value: number, updateUrl = true): void => {
+    if (starting) return;
+    const level = Number.isFinite(value) ? Math.max(0, Math.min(1000, Math.round(value))) : 0;
+    if (level !== terrain.seaLevel) {
+      stopSim();
+      clearPreview();
+      $('simDetail').hidden = true;
+      terrain.seaLevel = level;
+      renderer.seaLevel = level;
+      if (srcPos) placeSource(srcPos[0], srcPos[1], quakeP.strike);
+      meshDirty = true;
+      drawDirty = true;
+    }
+    $<HTMLInputElement>('seaLevel').value = String(level);
+    text('seaLevelValue', () => `${formatNumber(terrain.seaLevel)} m`);
+    if (updateUrl) writeUrl();
+  };
+  $('seaLevel').addEventListener('input', (e) => setSeaLevel(+(e.target as HTMLInputElement).value));
+  $('seaLevelReset').addEventListener('click', () => setSeaLevel(0));
 
   $('mw').addEventListener('input', (e) => { quakeP.Mw = +(e.target as HTMLInputElement).value; showSource(); });
   $('strike').addEventListener('input', (e) => { quakeP.strike = +(e.target as HTMLInputElement).value; showSource(); });

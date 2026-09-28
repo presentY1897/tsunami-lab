@@ -68,6 +68,8 @@ function reliefOf(elev: Float32Array): Float32Array {
 }
 
 export class Terrain {
+  /** 현재 해수면의 원래 표고 기준 높이(m). 계산은 이 해수면을 0으로 쓴다. */
+  seaLevel = 0;
   /** 39 km 격자와 그것을 2배씩 평균해 줄인 격자들. 큰 면을 그릴 때 점 하나만 찍어 보는 오류를 막는다. */
   private readonly mips: { size: number; data: Float32Array }[] = [];
   private readonly cache = new Map<number, ChunkEntry | null>();
@@ -179,6 +181,10 @@ export class Terrain {
 
   /** 받은 자료만으로 구한 표고(m). 생성한 세부는 들어 있지 않다. */
   base(lon: number, lat: number, scaleKm: number): number {
+    return this.rawBase(lon, lat, scaleKm) - this.seaLevel;
+  }
+
+  private rawBase(lon: number, lat: number, scaleKm: number): number {
     this.slope = 0;
     this.relief = 0;
     if (scaleKm >= 40) return this.coarse(lon, lat, scaleKm);
@@ -211,8 +217,12 @@ export class Terrain {
    * 바다는 음수. 해안에서 COAST_BAND_KM보다 먼 바다는 base()와 정확히 같다.
    */
   elevation(x: number, y: number, z: number, scaleKm: number): number {
+    return this.rawElevation(x, y, z, scaleKm) - this.seaLevel;
+  }
+
+  private rawElevation(x: number, y: number, z: number, scaleKm: number): number {
     const lon = Math.atan2(x, z) / DEG, lat = Math.asin(Math.max(-1, Math.min(1, y))) / DEG;
-    const b = this.base(lon, lat, scaleKm);
+    const b = this.rawBase(lon, lat, scaleKm);
     if (scaleKm >= DETAIL_MAX_WAVELENGTH_KM / 2 || this.slope === 0 && this.relief === 0) return b;
     const slope = this.slope, relief = this.relief;
     let e = b;

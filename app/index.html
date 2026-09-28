@@ -38,6 +38,10 @@
   <div id="sheetBody">
   <p id="readout" class="readout" data-i18n="intro">지구를 끌어서 돌리고, 두 손가락으로 확대해 보세요. 바다를 누르면 그곳에 해저 지진을 일으킬 수 있습니다.</p>
 
+  <div class="field"><label for="seaLevel"><span data-i18n="sea.label">해수면 상승</span> <output id="seaLevelValue">0 m</output></label><input type="range" id="seaLevel" min="0" max="1000" step="1" value="0" aria-describedby="seaLevelNote"></div>
+  <p id="seaLevelNote" class="sub" data-i18n="sea.note">현재 해수면 기준 · 수위를 바꾸면 진행 중인 계산이 초기화됩니다.</p>
+  <button type="button" id="seaLevelReset" class="toggle" data-i18n="sea.reset">수위 0 m로</button>
+
   <div id="quakePanel" class="panel" hidden>
     <div class="seg" role="group" aria-label="발생원 종류" data-i18n-aria-label="a11y.source">
       <button type="button" id="kindQuake" aria-pressed="true" data-i18n="source.quake">해저 지진</button>

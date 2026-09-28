@@ -165,6 +165,7 @@ in vec3 aCoast;    // 값을 준 해안 칸의 중심(rad 경도, rad 위도)과
 in vec4 aColor;    // 알파가 1이면 물 층
 uniform mat4 uViewProj;    // 상대 좌표용
 uniform vec3 uOrigin;
+uniform float uSeaLevel;
 uniform float uExag;       // 미터당 반지름 단위 (수직 과장 포함)
 flat out vec4 vColor;
 out vec3 vRelief;
@@ -220,6 +221,8 @@ void main() {
     height += disp;
     relief += disp;
   }
+  height += uSeaLevel * uExag;
+  relief += uSeaLevel * uExag;
   vPos = aRel + d * height;
   vRelief = aRel + d * relief;
   vDir = d;
@@ -367,6 +370,7 @@ export class GlobeRenderer {
    *  coastReal: 멀리서는 과장하고, 화면 폭 250 km 아래로 가까워지면 땅과 같은 배율. 눈에 보이는 높이 비교가 정직하다.
    *  boost: 화면 폭 30 km까지 과장을 유지한다. 해안 앞 파도가 땅보다 높아 보일 수 있다.
    */
+  seaLevel = 0;
   waveScaleMode: 'real' | 'coastReal' | 'boost' = 'coastReal';
   private readonly dummy: WebGLTexture;
 
@@ -385,7 +389,7 @@ export class GlobeRenderer {
     gl.linkProgram(p);
     if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(`셰이더 연결 실패: ${gl.getProgramInfoLog(p)}`);
     this.program = p;
-    for (const name of ['uLineStyle', 'uViewProj', 'uOrigin', 'uExag', 'uLight', 'uEye', 'uWaveState', 'uWaveBed', 'uWaveSize', 'uWaveRow0', 'uWaveWorld', 'uWaveOn', 'uWaveVis', 'uWaveRef', 'uGainSrc', 'uFloodRec', 'uFloodBed', 'uFloodSize', 'uFloodOrigin', 'uFloodWorld', 'uFloodBox', 'uFloodOn', 'uSimT', ...[0, 1, 2, 3].flatMap((k) => [`uL${k}State`, `uL${k}Bed`, `uL${k}Size`, `uL${k}Origin`, `uL${k}World`, `uL${k}On`, `uL${k}Gain`])]) {
+    for (const name of ['uSeaLevel', 'uLineStyle', 'uViewProj', 'uOrigin', 'uExag', 'uLight', 'uEye', 'uWaveState', 'uWaveBed', 'uWaveSize', 'uWaveRow0', 'uWaveWorld', 'uWaveOn', 'uWaveVis', 'uWaveRef', 'uGainSrc', 'uFloodRec', 'uFloodBed', 'uFloodSize', 'uFloodOrigin', 'uFloodWorld', 'uFloodBox', 'uFloodOn', 'uSimT', ...[0, 1, 2, 3].flatMap((k) => [`uL${k}State`, `uL${k}Bed`, `uL${k}Size`, `uL${k}Origin`, `uL${k}World`, `uL${k}On`, `uL${k}Gain`])]) {
       this.uni[name] = gl.getUniformLocation(p, name);
     }
     // 파도가 없을 때 물릴 1×1 텍스처
@@ -465,6 +469,7 @@ export class GlobeRenderer {
     gl.uniformMatrix4fv(this.uni.uViewProj, false, rel.matrix);
     gl.uniform3f(this.uni.uOrigin, this.origin[0], this.origin[1], this.origin[2]);
     gl.uniform3f(this.uni.uEye, rel.eye[0], rel.eye[1], rel.eye[2]);
+    gl.uniform1f(this.uni.uSeaLevel, this.seaLevel);
     gl.uniform1f(this.uni.uExag, this.exaggeration / 6371000);
     // 빛은 카메라 기준 왼쪽 위에서 온다. 지구를 돌려도 보이는 쪽이 늘 밝다.
     const { right: r, up: u, forward: f } = cam.basis;

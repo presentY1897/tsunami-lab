@@ -121,3 +121,17 @@ describe('지형 함수 (결정 D-018의 규칙)', () => {
     expect(Number.isFinite(at(terrain, 179.99, -84, 50))).toBe(true);
   });
 });
+
+describe('해수면 상승', () => {
+  it('기존 세부 지형을 유지하며 렌더링과 계산의 기준 수위를 함께 옮긴다', () => {
+    const points = [[129, 36], [135, 38], [142, 38]];
+    const before = points.map(([lon, lat]) => [terrain.base(lon, lat, 1), at(terrain, lon, lat, 1)]);
+    try {
+      terrain.seaLevel = 300;
+      points.forEach(([lon, lat], i) => {
+        expect(terrain.base(lon, lat, 1)).toBeCloseTo(before[i][0] - 300, 8);
+        expect(at(terrain, lon, lat, 1)).toBeCloseTo(before[i][1] - 300, 8);
+      });
+    } finally { terrain.seaLevel = 0; }
+  });
+});

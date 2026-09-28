@@ -1,4 +1,7 @@
 export const ko = {
+  "sea.label": "해수면 상승",
+  "sea.note": "현재 해수면 기준 · 수위를 바꾸면 진행 중인 계산이 초기화됩니다.",
+  "sea.reset": "수위 0 m로",
   "app.title": "쓰나미 랩",
   "app.description": "지진이나 소행성 충돌로 생긴 쓰나미가 지구 위에서 어떻게 퍼지는지 보여 주는 시뮬레이터.",
   "view.reset": "시점 되돌리기",

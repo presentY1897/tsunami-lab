@@ -58,13 +58,13 @@ export function autoStrike(terrain: Terrain, lon: number, lat: number): number {
   return (((dipDir - 90) % 360) + 360) % 360;
 }
 
-export function buildGlobalGrid(earth: EarthGrid, source: SourceModel): { grid: GlobalGrid; source: SourceSummary } {
+export function buildGlobalGrid(earth: EarthGrid, source: SourceModel, seaLevel = 0): { grid: GlobalGrid; source: SourceSummary } {
   const quake = source.params;
   const nx = earth.size, ny = GLOBAL_ROWS, z = earth.zoom;
   const bed = new Float32Array(nx * ny), eta0 = new Float32Array(nx * ny), wet0 = new Uint8Array(nx * ny);
   for (let j = 0; j < ny; j++) {
     for (let i = 0; i < nx; i++) {
-      const e = earth.elev[(GLOBAL_ROW0 + j) * nx + i], k = j * nx + i;
+      const e = earth.elev[(GLOBAL_ROW0 + j) * nx + i] - seaLevel, k = j * nx + i;
       if (e < 0) { wet0[k] = 1; bed[k] = Math.min(e, -MIN_DEPTH_M); } else bed[k] = Math.max(e, LAND_FLOOR_M);
     }
   }

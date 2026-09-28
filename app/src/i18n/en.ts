@@ -1,6 +1,9 @@
 import type { MessageKey } from './ko';
 
 export const en = {
+  "sea.label": "Sea level rise",
+  "sea.note": "Relative to present sea level. Changing the level resets the simulation.",
+  "sea.reset": "Reset level to 0 m",
   "app.title": "Tsunami Lab",
   "app.description": "Explore how tsunamis from earthquakes and asteroid impacts spread across the globe.",
   "view.reset": "Reset view",
