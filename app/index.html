@@ -23,8 +23,7 @@
     <div class="toggles">
       <select id="language" class="language" aria-label="언어" data-i18n-aria-label="a11y.language"><option value="ko">한국어</option><option value="en">English</option></select>
       <button type="button" id="viewReset" class="toggle" hidden data-i18n="view.reset">시점 되돌리기</button>
-      <button type="button" id="linesToggle" class="toggle" aria-pressed="true" data-i18n="view.boundaries">실제 경계선</button>
-      <button type="button" id="citiesToggle" class="toggle" aria-pressed="true" data-i18n="view.cities">도시</button>
+
     </div>
   </div>
 </header>
@@ -38,9 +37,10 @@
   <div id="sheetBody">
   <p id="readout" class="readout" data-i18n="intro">지구를 끌어서 돌리고, 두 손가락으로 확대해 보세요. 바다를 누르면 그곳에 해저 지진을 일으킬 수 있습니다.</p>
 
-  <div class="field"><label for="seaLevel"><span data-i18n="sea.label">해수면 상승</span> <output id="seaLevelValue">0 m</output></label><input type="range" id="seaLevel" min="0" max="1000" step="1" value="0" aria-describedby="seaLevelNote"></div>
-  <p id="seaLevelNote" class="sub" data-i18n="sea.note">현재 해수면 기준 · 수위를 바꾸면 진행 중인 계산이 초기화됩니다.</p>
+  <div class="sea-control">
+  <div class="field"><div class="sea-heading"><label for="seaLevel" data-i18n="sea.label">해수면 상승</label><div class="sea-value"><input type="number" id="seaLevelValue" min="0" max="1000" step="1" value="0" inputmode="numeric" aria-label="해수면 상승" data-i18n-aria-label="sea.label"><span>m</span></div></div><input type="range" id="seaLevel" min="0" max="1000" step="1" value="0" aria-describedby="seaLevelNote"></div>
   <button type="button" id="seaLevelReset" class="toggle" data-i18n="sea.reset">수위 0 m로</button>
+  </div>
 
   <div id="quakePanel" class="panel" hidden>
     <div class="seg" role="group" aria-label="발생원 종류" data-i18n-aria-label="a11y.source">
@@ -56,7 +56,6 @@
       <div class="field"><label for="vel"><span data-i18n="source.velocity">충돌 속도</span> <output id="velv"></output></label><input type="range" id="vel" min="11" max="40" step="1" value="20"></div>
       <div class="field"><label for="rho" data-i18n="source.material">재질</label><select id="rho"><option value="3000" data-i18n="material.rock">암석 (3,000 kg/m³)</option><option value="7800" data-i18n="material.iron">철 (7,800 kg/m³)</option><option value="1000" data-i18n="material.ice">얼음 (1,000 kg/m³)</option></select></div>
     </div>
-    <p id="faultinfo" class="sub"></p>
     <div class="coastrow"><p id="coastinfo" class="sub"></p><button type="button" id="pickCoast" data-i18n="coast.select">해안 고르기</button></div>
     <button type="button" id="go" class="primary" data-i18n="sim.start">쓰나미 일으키기</button>
   </div>
@@ -68,28 +67,32 @@
       <input type="range" id="timeline" min="0" max="21600" step="60" value="0" aria-label="시각" data-i18n-aria-label="a11y.time">
       <span id="timelineEnd" class="tlend" data-i18n="time.sixHours">6시간</span>
     </div>
-    <div class="speeds" role="group" aria-label="재생 속도. 1초에 흐르는 시간" data-i18n-aria-label="a11y.speed">
-      <span class="speedlabel" data-i18n="speed.label">배속</span>
-      <button type="button" data-speed="120" aria-pressed="true" data-i18n="speed.two">2분</button>
-      <button type="button" data-speed="600" data-i18n="speed.ten">10분</button>
-      <button type="button" data-speed="1800" data-i18n="speed.thirty">30분</button>
-      <button type="button" data-speed="max" data-i18n="speed.max">최대</button>
+    <div class="speed-control">
+      <div class="field">
+        <div class="sea-heading"><label for="speedRange" data-i18n="speed.label">배속</label><div class="sea-value"><input type="number" id="speedValue" min="1" max="3600" step="1" value="120" inputmode="numeric" aria-label="배속" data-i18n-aria-label="speed.label"><span>×</span></div></div>
+        <input type="range" id="speedRange" min="1" max="3600" step="1" value="120" aria-label="배속" data-i18n-aria-label="speed.label">
+      </div>
+      <button type="button" id="speedMax" class="toggle" aria-pressed="false" data-i18n="speed.max">최대</button>
     </div>
     <div id="stats" class="stats" hidden></div>
-    <div class="checks"><button type="button" id="floodToggle" class="toggle" aria-pressed="true" data-i18n="flood.toggle">최대 침수 범위 색칠</button></div>
-    <div class="seg" role="group" aria-label="파도 높이 그리기" data-i18n-aria-label="a11y.wave">
-      <button type="button" data-wavescale="real" data-i18n="wave.real">실제 비율</button>
-      <button type="button" data-wavescale="coastReal" aria-pressed="true" data-i18n="wave.coastReal">해안은 실제</button>
-      <button type="button" data-wavescale="boost" data-i18n="wave.boost">과장</button>
-    </div>
     <div class="actions"><button type="button" id="editSource" data-i18n="source.edit">발생원 수정</button><button type="button" id="rerun" data-i18n="sim.rerun">다시 일으키기</button><button type="button" id="share" data-i18n="share.copy">링크 복사</button></div>
   </div>
 
   <details class="details" id="moreInfo">
     <summary data-i18n="details">자세히</summary>
-    <p id="simDetail" class="sub" hidden></p>
-    <p id="wavescaleNote" class="sub"></p>
-    <p id="meshinfo" class="sub"></p>
+    <div class="view-options">      <button type="button" id="linesToggle" class="toggle" aria-pressed="true" data-i18n="view.boundaries">실제 경계선</button>
+      <button type="button" id="citiesToggle" class="toggle" aria-pressed="true" data-i18n="view.cities">도시</button>
+    </div>
+    <div class="checks"><button type="button" id="floodToggle" class="toggle" aria-pressed="true" data-i18n="flood.toggle">최대 침수 범위 색칠</button></div>
+    <div class="wave-buttons" role="group" aria-label="파도 높이 그리기" data-i18n-aria-label="a11y.wave">
+      <button type="button" data-wavescale="real" aria-pressed="false" data-i18n="wave.real">실제 비율</button>
+      <button type="button" data-wavescale="coastReal" aria-pressed="true" data-i18n="wave.coastReal">자동</button>
+      <button type="button" data-wavescale="boost" aria-pressed="false" data-i18n="wave.boost">과장</button>
+    </div>
+    <p id="seaLevelNote" class="sub" data-i18n="sea.note">수위 변경 시 계산이 초기화됩니다.</p>
+    <p id="faultinfo" class="sub"></p>
+    <p id="simDetail" class="diagnostic" hidden></p>
+    <p id="meshinfo" hidden></p>
     <p id="generated" class="sub" hidden data-i18n="terrain.generated">10 km보다 세밀한 지형은 실제가 아니라 만들어 낸 것입니다.</p>
     <p class="sub" data-i18n="terrain.notice">10 km 자료를 보간한 지형이라 예시이지 그 장소의 예측이 아닙니다.</p>
     <button type="button" id="reset" class="toggle" data-i18n="source.reset">처음부터 새로 고르기</button>

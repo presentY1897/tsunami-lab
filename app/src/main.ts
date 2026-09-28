@@ -143,7 +143,6 @@ async function start(): Promise<void> {
   const setWaveScale = (mode: 'real' | 'coastReal' | 'boost'): void => {
     renderer.waveScaleMode = mode;
     document.querySelectorAll<HTMLButtonElement>('[data-wavescale]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.wavescale === mode)));
-    text('wavescaleNote', () => t(`wave.note.${mode}`));
     try { localStorage.setItem('waveScale', mode); } catch { /* 무시 */ }
     drawDirty = true;
   };
@@ -224,7 +223,7 @@ async function start(): Promise<void> {
     drawDirty = true;
   };
   setDesignStyle(designQuery.get('style') === 'wireframe' ? 'wireframe' : 'color');
-  document.querySelector('.toggles')!.prepend(designButton);
+  document.querySelector('.view-options')!.prepend(designButton);
   designButton.addEventListener('click', () => {
     setDesignStyle(renderer.designStyle === 'color' ? 'wireframe' : 'color');
   });
@@ -560,6 +559,7 @@ async function start(): Promise<void> {
     if (!q || starting) return;
     starting = true;
     $<HTMLInputElement>('seaLevel').disabled = true;
+    $<HTMLInputElement>('seaLevelValue').disabled = true;
     $<HTMLButtonElement>('seaLevelReset').disabled = true;
     try {
       stopSim();
@@ -665,6 +665,7 @@ async function start(): Promise<void> {
     } finally {
       starting = false;
       $<HTMLInputElement>('seaLevel').disabled = false;
+      $<HTMLInputElement>('seaLevelValue').disabled = false;
       $<HTMLButtonElement>('seaLevelReset').disabled = false;
     }
   };
@@ -689,10 +690,17 @@ async function start(): Promise<void> {
       drawDirty = true;
     }
     $<HTMLInputElement>('seaLevel').value = String(level);
-    text('seaLevelValue', () => `${formatNumber(terrain.seaLevel)} m`);
+    $<HTMLInputElement>('seaLevelValue').value = String(level);
     if (updateUrl) writeUrl();
   };
   $('seaLevel').addEventListener('input', (e) => setSeaLevel(+(e.target as HTMLInputElement).value));
+  const seaValue = $<HTMLInputElement>('seaLevelValue');
+  const applySeaValue = (): void => setSeaLevel(seaValue.value.trim() === '' || !Number.isFinite(seaValue.valueAsNumber) ? terrain.seaLevel : seaValue.valueAsNumber);
+  seaValue.addEventListener('change', applySeaValue);
+  seaValue.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') { applySeaValue(); seaValue.blur(); }
+    if (event.key === 'Escape') { seaValue.value = String(terrain.seaLevel); seaValue.blur(); }
+  });
   $('seaLevelReset').addEventListener('click', () => setSeaLevel(0));
 
   $('mw').addEventListener('input', (e) => { quakeP.Mw = +(e.target as HTMLInputElement).value; showSource(); });
@@ -740,10 +748,30 @@ async function start(): Promise<void> {
   tl.addEventListener('change', () => { tlDragging = false; seekTo(Number(tl.value)); });
   $('reset').addEventListener('click', () => { stopSim(); clearPreview(); srcPos = null; outline = null; picked = null; coast = null; pickMode = 'source'; $('simPanel').hidden = true; $('simDetail').hidden = true; writeUrl(); setCollapsed(false); showCoast(); text('readout', () => t('intro.reset')); });
   showCoast();
-  document.querySelectorAll<HTMLButtonElement>('[data-speed]').forEach((b) => b.addEventListener('click', () => {
-    speed = b.dataset.speed === 'max' ? Infinity : Number(b.dataset.speed);
-    document.querySelectorAll('[data-speed]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
-  }));
+  const speedRange = $<HTMLInputElement>('speedRange');
+  const speedValue = $<HTMLInputElement>('speedValue');
+  let finiteSpeed = 120;
+  const setSpeed = (value: number): void => {
+    const next = value === Infinity ? Infinity : Math.max(1, Math.min(3600, Math.round(Number.isFinite(value) ? value : finiteSpeed)));
+    if (Number.isFinite(next)) finiteSpeed = next;
+    // Seeking temporarily runs at full speed; edits apply when it reaches the target.
+    if (seeking) speedBeforeSeek = next;
+    else speed = next;
+    speedRange.value = String(finiteSpeed);
+    speedValue.value = String(finiteSpeed);
+    $('speedMax').setAttribute('aria-pressed', String(next === Infinity));
+    speedValue.disabled = next === Infinity;
+    drawDirty = true;
+  };
+  speedRange.addEventListener('input', () => setSpeed(speedRange.valueAsNumber));
+  const applySpeed = (): void => setSpeed(Number.isFinite(speedValue.valueAsNumber) ? speedValue.valueAsNumber : finiteSpeed);
+  speedValue.addEventListener('change', applySpeed);
+  speedValue.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') { applySpeed(); speedValue.blur(); }
+    if (event.key === 'Escape') { speedValue.value = String(finiteSpeed); speedValue.blur(); }
+  });
+  $('speedMax').addEventListener('click', () => setSpeed((seeking ? speedBeforeSeek : speed) === Infinity ? finiteSpeed : Infinity));
+
 
   camera.onChange = () => { meshDirty = true; drawDirty = true; };
   camera.onTap = (lon, lat) => {
@@ -965,7 +993,8 @@ async function start(): Promise<void> {
     get source() { return currentSource(); },
     updateStats,
     startSim,
-    setSpeed: (v: number) => { speed = v; },
+    setSpeed,
+    get speed() { return seeking ? speedBeforeSeek : speed; },
     runUntil: (t: number) => { stopAt = t; speed = Infinity; running = true; startAt = 0; streakStart = 0; },
     seekTo,
     setCollapsed,

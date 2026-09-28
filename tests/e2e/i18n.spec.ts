@@ -21,7 +21,7 @@ test('switches all UI and cities without resetting the simulation; saves and sha
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await expect(page).toHaveTitle('Tsunami Lab');
   await expect(page.locator('#globe')).toHaveAttribute('aria-label', /Drag to rotate/);
-  await expect(page.locator('#faultinfo')).toContainText('Fixed fault size');
+  await expect(page.locator('#faultinfo')).toContainText('Fault');
   await page.waitForFunction(() => (window as unknown as { __app: Probe }).__app.cities.cities.some(c => c.name === 'Tokyo'));
   await page.evaluate(() => (window as unknown as { __app: Probe }).__app.startSim());
   await page.evaluate(() => (window as unknown as { __app: Probe }).__app.seekTo(600));
@@ -53,7 +53,7 @@ test('switches all UI and cities without resetting the simulation; saves and sha
   const url = page.url();
   await page.reload();
   await page.waitForFunction(() => (window as unknown as { __app?: Probe }).__app?.ready);
-  await expect(page.locator('#faultinfo')).toContainText('Fixed fault size');
+  await expect(page.locator('#faultinfo')).toContainText('Fault');
   const saved = new URL(url); saved.searchParams.delete('lang');
   await page.locator('#language').selectOption('ko');
   await page.goto(saved.toString());
@@ -66,18 +66,18 @@ test('switches all UI and cities without resetting the simulation; saves and sha
 test('English asteroid settings, preparation and reset contain translated text', async ({ page }) => {
   await page.goto(`${APP}?lang=en&lon=134&lat=39.5&kind=impact&diam=500`);
   await page.waitForFunction(() => (window as unknown as { __app?: Probe }).__app?.ready);
-  await expect(page.locator('#faultinfo')).toContainText('Impact energy');
+  await expect(page.locator('#faultinfo')).toContainText('Energy');
   await expect(page.locator('#rho option:checked')).toHaveText('Rock (3,000 kg/m³)');
   await page.evaluate(() => (window as unknown as { __app: Probe }).__app.startSim());
   await page.evaluate(() => (window as unknown as { __app: Probe }).__app.setCollapsed(false));
   await expect(page.locator('#readout')).toContainText('Asteroid impact');
-  await expect(page.locator('#simstate')).toHaveText('Press play to start');
+  await expect(page.locator('#simstate')).toHaveText('Ready to play');
   await page.locator('#moreInfo').evaluate(el => { (el as HTMLDetailsElement).open = true; });
   await expect(page.locator('#simDetail')).toContainText('Cavity depth');
   await page.locator('#reset').click();
   await expect(page.locator('#readout')).toContainText('Tap the ocean');
   await page.locator('#language').selectOption('ko');
-  await expect(page.locator('#readout')).toContainText('바다를 누르면');
+  await expect(page.locator('#readout')).toContainText('바다를 눌러');
 });
 
 test('language switching works when local storage is blocked', async ({ page }) => {

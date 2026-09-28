@@ -123,7 +123,7 @@ test('폰 크기 화면에서 지구가 뜨고, 첫 화면 전송량이 예산 �
   await expect(page.locator('#simstate')).toHaveText('재생을 누르면 시작합니다');
   await page.evaluate(() => window.__app.setCollapsed(false));
   await expect(page.locator('#simPanel')).toBeVisible();
-  await page.locator('[data-speed="max"]').click();
+  await page.locator('#speedMax').click();
   // 파도 높이 그리기: 기본은 '해안은 실제'. 고르면 렌더러 모드와 눌림 상태가 바뀌고 새로고침 뒤에도 남도록 저장된다.
   await expect(page.locator('[data-wavescale="coastReal"]')).toHaveAttribute('aria-pressed', 'true');
   await page.locator('[data-wavescale="real"]').click();
@@ -194,7 +194,7 @@ test('폰 크기 화면에서 지구가 뜨고, 첫 화면 전송량이 예산 �
   await page.evaluate(() => window.__app.setCollapsed(false));
   await expect(page.locator('#simPanel')).toBeVisible();
   await expect(page.locator('#readout')).toContainText('소행성 충돌');
-  await page.locator('[data-speed="max"]').click();
+  await page.locator('#speedMax').click();
   await page.evaluate(() => window.__app.runUntil(1500));
   await page.waitForFunction(() => (window.__app.solver?.t ?? 0) >= 1500 - 60, null, { timeout: 120_000, polling: 200 });
   // 25분 뒤: 발생원에서 약 150 km 떨어진 동해에 파가 와 있고, 발생원 격자와 전 지구 격자 모두 움직였다
