@@ -12,7 +12,7 @@ type Probe = {
 test('가상 지진 규모 10.5를 계산하고 공유 주소에서 복원한다', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', e => errors.push(e.message));
-  await page.goto('http://localhost:5191/?lon=142.85&lat=38.3&kind=quake&mw=9.5&strike=193&turbo=6');
+  await page.goto('http://localhost:5191/?lang=ko&lon=142.85&lat=38.3&kind=quake&mw=9.5&strike=193&turbo=6');
   await page.waitForFunction(() => (window as unknown as { __app?: Probe }).__app?.ready);
   const mw = page.locator('#mw');
   await expect(mw).toHaveAttribute('max', '10.5');

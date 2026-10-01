@@ -1,15 +1,24 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<link rel="icon" href="data:," />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="theme-color" content="#060d1a">
-<title data-i18n="app.title">쓰나미 랩</title>
-<meta name="description" data-i18n-content="app.description" content="지진이나 소행성 충돌로 생긴 쓰나미가 지구 위에서 어떻게 퍼지는지 보여 주는 시뮬레이터.">
+<title data-i18n="seo.title">Tsunami Play — Interactive 3D Tsunami Simulator</title>
+<meta name="description" data-i18n-content="app.description" content="Create earthquakes and asteroid impacts in an interactive 3D tsunami simulator. Explore wave propagation, coastal effects, and sea level rise in your browser.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Tsunami Play">
+<meta property="og:title" content="Tsunami Play — Interactive 3D Tsunami Simulator">
+<meta property="og:description" content="Create earthquakes and asteroid impacts. Explore tsunami waves and coastal effects on an interactive 3D globe.">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Tsunami Play — Interactive 3D Tsunami Simulator">
+<meta name="twitter:description" content="Create earthquakes and asteroid impacts. Explore tsunami waves and coastal effects on an interactive 3D globe.">
 </head>
 <body>
-<canvas id="globe" aria-label="삼각형 면으로 그린 지구. 끌어서 돌리고, 두 손가락이나 휠로 확대합니다." data-i18n-aria-label="a11y.globe"></canvas>
+<canvas id="globe" aria-label="Globe rendered as triangles. Drag to rotate; pinch or scroll to zoom." data-i18n-aria-label="a11y.globe"></canvas>
 <div id="labels" class="labels" aria-hidden="true"></div>
 <svg id="overlay" class="overlay" aria-hidden="true"><polygon id="faultShape" /><line id="faultTrench" /></svg>
 <div id="marker" hidden></div>
@@ -18,11 +27,11 @@
 <div id="flash" class="flash" hidden></div>
 <div id="coastMarker" class="coastmarker" hidden></div>
 <header class="top">
-  <h1 data-i18n="app.title">쓰나미 랩</h1>
+  <h1 data-i18n="app.title">Tsunami Play</h1>
   <div class="topright">
     <div class="toggles">
-      <select id="language" class="language" aria-label="언어" data-i18n-aria-label="a11y.language"><option value="ko">한국어</option><option value="en">English</option></select>
-      <button type="button" id="viewReset" class="toggle" hidden data-i18n="view.reset">시점 되돌리기</button>
+      <select id="language" class="language" aria-label="Language" data-i18n-aria-label="a11y.language"><option value="en">English</option><option value="ko">한국어</option></select>
+      <button type="button" id="viewReset" class="toggle" hidden data-i18n="view.reset">Reset view</button>
 
     </div>
   </div>
@@ -31,72 +40,80 @@
   <div class="sheethead" id="sheetHead">
     <span class="grip" aria-hidden="true"></span>
     <span id="sheetMini" class="sheetmini"></span>
-    <button type="button" id="playMini" class="toggle playmini" aria-label="재생" data-i18n-aria-label="action.play" hidden>▶</button>
-    <button type="button" id="sheetToggle" class="toggle" aria-expanded="true" data-i18n="panel.collapse">접기</button>
+    <button type="button" id="playMini" class="toggle playmini" aria-label="Play" data-i18n-aria-label="action.play" hidden>▶</button>
+    <button type="button" id="sheetToggle" class="toggle" aria-expanded="true" data-i18n="panel.collapse">Collapse</button>
   </div>
   <div id="sheetBody">
-  <p id="readout" class="readout" data-i18n="intro">지구를 끌어서 돌리고, 두 손가락으로 확대해 보세요. 바다를 누르면 그곳에 해저 지진을 일으킬 수 있습니다.</p>
+  <p id="readout" class="readout" data-i18n="intro">Tap the ocean to begin.</p>
 
   <div class="sea-control">
-  <div class="field"><div class="sea-heading"><label for="seaLevel" data-i18n="sea.label">해수면 상승</label><div class="sea-value"><input type="number" id="seaLevelValue" min="0" max="1000" step="1" value="0" inputmode="numeric" aria-label="해수면 상승" data-i18n-aria-label="sea.label"><span>m</span></div></div><input type="range" id="seaLevel" min="0" max="1000" step="1" value="0" aria-describedby="seaLevelNote"></div>
-  <button type="button" id="seaLevelReset" class="toggle" data-i18n="sea.reset">수위 0 m로</button>
+  <div class="field"><div class="sea-heading"><label for="seaLevel" data-i18n="sea.label">Sea level rise</label><div class="sea-value"><input type="number" id="seaLevelValue" min="0" max="1000" step="1" value="0" inputmode="numeric" aria-label="Sea level rise" data-i18n-aria-label="sea.label"><span>m</span></div></div><input type="range" id="seaLevel" min="0" max="1000" step="1" value="0" aria-describedby="seaLevelNote"></div>
+  <button type="button" id="seaLevelReset" class="toggle" data-i18n="sea.reset">Reset level to 0 m</button>
   </div>
 
   <div id="quakePanel" class="panel" hidden>
-    <div class="seg" role="group" aria-label="발생원 종류" data-i18n-aria-label="a11y.source">
-      <button type="button" id="kindQuake" aria-pressed="true" data-i18n="source.quake">해저 지진</button>
-      <button type="button" id="kindImpact" aria-pressed="false" data-i18n="source.impact">소행성 충돌</button>
+    <div class="seg" role="group" aria-label="Source type" data-i18n-aria-label="a11y.source">
+      <button type="button" id="kindQuake" aria-pressed="true" data-i18n="source.quake">Earthquake</button>
+      <button type="button" id="kindImpact" aria-pressed="false" data-i18n="source.impact">Asteroid impact</button>
     </div>
     <div id="quakeFields">
-      <div class="field"><label for="mw"><span data-i18n="source.magnitude">규모</span> <output id="mwv"></output></label><input type="range" id="mw" min="7.5" max="10.5" step="0.1" value="9"></div>
-      <div class="field"><label for="strike"><span data-i18n="source.strike">단층 방향</span> <output id="strikev"></output></label><input type="range" id="strike" min="0" max="359" step="1" value="0"></div>
+      <div class="field"><label for="mw"><span data-i18n="source.magnitude">Magnitude</span> <output id="mwv"></output></label><input type="range" id="mw" min="7.5" max="10.5" step="0.1" value="9"></div>
+      <div class="field"><label for="strike"><span data-i18n="source.strike">Fault strike</span> <output id="strikev"></output></label><input type="range" id="strike" min="0" max="359" step="1" value="0"></div>
     </div>
     <div id="impactFields" hidden>
-      <div class="field"><label for="diam"><span data-i18n="source.diameter">지름</span> <output id="diamv"></output></label><input type="range" id="diam" min="0" max="1" step="0.001" value="0.6"></div>
-      <div class="field"><label for="vel"><span data-i18n="source.velocity">충돌 속도</span> <output id="velv"></output></label><input type="range" id="vel" min="11" max="40" step="1" value="20"></div>
-      <div class="field"><label for="rho" data-i18n="source.material">재질</label><select id="rho"><option value="3000" data-i18n="material.rock">암석 (3,000 kg/m³)</option><option value="7800" data-i18n="material.iron">철 (7,800 kg/m³)</option><option value="1000" data-i18n="material.ice">얼음 (1,000 kg/m³)</option></select></div>
+      <div class="field"><label for="diam"><span data-i18n="source.diameter">Diameter</span> <output id="diamv"></output></label><input type="range" id="diam" min="0" max="1" step="0.001" value="0.6"></div>
+      <div class="field"><label for="vel"><span data-i18n="source.velocity">Impact speed</span> <output id="velv"></output></label><input type="range" id="vel" min="11" max="40" step="1" value="20"></div>
+      <div class="field"><label for="rho" data-i18n="source.material">Material</label><select id="rho"><option value="3000" data-i18n="material.rock">Rock (3,000 kg/m³)</option><option value="7800" data-i18n="material.iron">Iron (7,800 kg/m³)</option><option value="1000" data-i18n="material.ice">Ice (1,000 kg/m³)</option></select></div>
     </div>
-    <div class="coastrow"><p id="coastinfo" class="sub"></p><button type="button" id="pickCoast" data-i18n="coast.select">해안 고르기</button></div>
-    <button type="button" id="go" class="primary" data-i18n="sim.start">쓰나미 일으키기</button>
+    <div class="coastrow"><p id="coastinfo" class="sub"></p><button type="button" id="pickCoast" data-i18n="coast.select">Select coast</button></div>
+    <button type="button" id="go" class="primary" data-i18n="sim.start">Create tsunami</button>
   </div>
 
   <div id="simPanel" class="panel" hidden>
-    <div class="simtop"><b id="clock" data-i18n="time.zero">0분</b><span id="simstate"></span></div>
+    <div class="simtop"><b id="clock" data-i18n="time.zero">0 min</b><span id="simstate"></span></div>
     <div class="timeline">
-      <button type="button" id="play" class="play" aria-label="재생" data-i18n-aria-label="action.play">▶</button>
-      <input type="range" id="timeline" min="0" max="21600" step="60" value="0" aria-label="시각" data-i18n-aria-label="a11y.time">
-      <span id="timelineEnd" class="tlend" data-i18n="time.sixHours">6시간</span>
+      <button type="button" id="play" class="play" aria-label="Play" data-i18n-aria-label="action.play">▶</button>
+      <input type="range" id="timeline" min="0" max="21600" step="60" value="0" aria-label="Simulation time" data-i18n-aria-label="a11y.time">
+      <span id="timelineEnd" class="tlend" data-i18n="time.sixHours">6 h</span>
     </div>
     <div class="speed-control">
       <div class="field">
-        <div class="sea-heading"><label for="speedRange" data-i18n="speed.label">배속</label><div class="sea-value"><input type="number" id="speedValue" min="1" max="3600" step="1" value="120" inputmode="numeric" aria-label="배속" data-i18n-aria-label="speed.label"><span>×</span></div></div>
-        <input type="range" id="speedRange" min="1" max="3600" step="1" value="120" aria-label="배속" data-i18n-aria-label="speed.label">
+        <div class="sea-heading"><label for="speedRange" data-i18n="speed.label">Speed</label><div class="sea-value" id="speedNumeric"><input type="number" id="speedValue" min="1" max="3600" step="1" value="120" inputmode="numeric" aria-label="Speed" data-i18n-aria-label="speed.label"><span>×</span></div><output id="speedMaxValue" for="speedRange" data-i18n="speed.max" hidden>Max</output></div>
+        <input type="range" id="speedRange" min="1" max="3600" step="1" value="120" aria-label="Speed" data-i18n-aria-label="speed.label">
       </div>
-      <button type="button" id="speedMax" class="toggle" aria-pressed="false" data-i18n="speed.max">최대</button>
+      <button type="button" id="speedMax" class="toggle" aria-pressed="false" data-i18n="speed.max">Max</button>
     </div>
     <div id="stats" class="stats" hidden></div>
-    <div class="actions"><button type="button" id="editSource" data-i18n="source.edit">발생원 수정</button><button type="button" id="rerun" data-i18n="sim.rerun">다시 일으키기</button><button type="button" id="share" data-i18n="share.copy">링크 복사</button></div>
+    <div class="actions"><button type="button" id="editSource" data-i18n="source.edit">Edit source</button><button type="button" id="rerun" data-i18n="sim.rerun">Run again</button><button type="button" id="share" data-i18n="share.copy">Copy link</button></div>
   </div>
 
   <details class="details" id="moreInfo">
-    <summary data-i18n="details">자세히</summary>
-    <div class="view-options">      <button type="button" id="linesToggle" class="toggle" aria-pressed="true" data-i18n="view.boundaries">실제 경계선</button>
-      <button type="button" id="citiesToggle" class="toggle" aria-pressed="true" data-i18n="view.cities">도시</button>
+    <summary data-i18n="details">Display settings</summary>
+    <div class="view-options">      <button type="button" id="linesToggle" class="toggle" aria-pressed="true" data-i18n="view.boundaries">Boundaries</button>
+      <button type="button" id="citiesToggle" class="toggle" aria-pressed="true" data-i18n="view.cities">Cities</button>
     </div>
-    <div class="checks"><button type="button" id="floodToggle" class="toggle" aria-pressed="true" data-i18n="flood.toggle">최대 침수 범위 색칠</button></div>
-    <div class="wave-buttons" role="group" aria-label="파도 높이 그리기" data-i18n-aria-label="a11y.wave">
-      <button type="button" data-wavescale="real" aria-pressed="false" data-i18n="wave.real">실제 비율</button>
-      <button type="button" data-wavescale="coastReal" aria-pressed="true" data-i18n="wave.coastReal">자동</button>
-      <button type="button" data-wavescale="boost" aria-pressed="false" data-i18n="wave.boost">과장</button>
+    <div class="checks"><button type="button" id="floodToggle" class="toggle" aria-pressed="true" data-i18n="flood.toggle">Flood extent</button></div>
+    <div class="wave-buttons" role="group" aria-label="Wave height display" data-i18n-aria-label="a11y.wave">
+      <button type="button" data-wavescale="real" aria-pressed="false" data-i18n="wave.real">Match terrain</button>
+      <button type="button" data-wavescale="coastReal" aria-pressed="true" data-i18n="wave.coastReal">Auto</button>
+      <button type="button" data-wavescale="boost" aria-pressed="false" data-i18n="wave.boost">Exaggerated</button>
     </div>
-    <p id="seaLevelNote" class="sub" data-i18n="sea.note">수위 변경 시 계산이 초기화됩니다.</p>
+    <p id="seaLevelNote" class="sub" data-i18n="sea.note">Changing sea level resets the simulation.</p>
     <p id="faultinfo" class="sub"></p>
     <p id="simDetail" class="diagnostic" hidden></p>
     <p id="meshinfo" hidden></p>
-    <p id="generated" class="sub" hidden data-i18n="terrain.generated">10 km보다 세밀한 지형은 실제가 아니라 만들어 낸 것입니다.</p>
-    <p class="sub" data-i18n="terrain.notice">10 km 자료를 보간한 지형이라 예시이지 그 장소의 예측이 아닙니다.</p>
-    <button type="button" id="reset" class="toggle" data-i18n="source.reset">처음부터 새로 고르기</button>
+    <p id="generated" class="sub" hidden data-i18n="terrain.generated">Fine terrain is procedurally generated.</p>
+    <p class="sub" data-i18n="terrain.notice">Not a real-world flood prediction.</p>
+    <button type="button" id="reset" class="toggle" data-i18n="source.reset">Reset</button>
   </details>
+  <details class="details about" id="about">
+    <summary data-i18n="about.title">About &amp; how to play</summary>
+    <h2 data-i18n="about.heading">Explore tsunamis on a 3D globe</h2>
+    <p data-i18n="about.description">Tsunami Play is an interactive browser simulation of tsunamis caused by undersea earthquakes and asteroid impacts. Change the source and sea level, watch waves spread across the globe, and explore their effects on coastlines.</p>
+    <p data-i18n="about.steps">Tap the ocean to choose a location. Adjust the earthquake or asteroid settings, optionally select a coast, then choose Create tsunami and press Play. Use the timeline and speed controls to explore the result, or copy a link to share your scenario.</p>
+    <p data-i18n="about.limit">This is an educational simulation using simplified physics and terrain. It is not a tsunami warning system or a tool for real-world flood predictions or evacuation decisions.</p>
+  </details>
+  <noscript><p class="sub">Enable JavaScript to run the interactive 3D simulation.</p></noscript>
   </div>
 </section>
 <div id="fatal" class="fatal" hidden></div>

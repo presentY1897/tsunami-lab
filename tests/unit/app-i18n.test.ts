@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { afterEach, describe, expect, it } from 'vitest';
 import { formatClock, formatNumber, messages, resolveLocale, setLocale, t, th } from '../../app/src/i18n';
 
-afterEach(() => setLocale('ko'));
+afterEach(() => setLocale('en'));
 describe('locale contract', () => {
   it('every language supplies the same keys and interpolation parameters', () => {
     const keys = Object.keys(messages.ko) as (keyof typeof messages.ko)[];
@@ -15,13 +15,16 @@ describe('locale contract', () => {
     const html = readFileSync('app/index.html', 'utf8');
     for (const [, key] of html.matchAll(/data-i18n(?:-aria-label|-content)?="([^"]+)"/g)) expect(keys).toContain(key);
   });
-  it('uses URL, saved preference, supported browser languages, then Korean fallback', () => {
-    expect(resolveLocale('en', 'ko', ['ko-KR'])).toBe('en');
-    expect(resolveLocale('invalid', 'en-US', ['ko-KR'])).toBe('en');
-    expect(resolveLocale(null, null, ['fr-FR', 'en-GB'])).toBe('en');
-    expect(resolveLocale(null, null, ['ja-JP'])).toBe('ko');
+  it('uses URL, saved preference, then English by default', () => {
+    expect(resolveLocale('en', 'ko')).toBe('en');
+    expect(resolveLocale('ko-KR', 'en')).toBe('ko');
+    expect(resolveLocale('invalid', 'en-US')).toBe('en');
+    expect(resolveLocale(null, 'ko')).toBe('ko');
+    expect(resolveLocale(null, null)).toBe('en');
+    expect(resolveLocale('invalid', 'invalid')).toBe('en');
   });
   it('formats elapsed time and numbers without leaking translation tokens', () => {
+    setLocale('ko');
     expect(formatClock(3599)).toBe('1시간 0분');
     expect(formatClock(0)).toBe('0분');
     setLocale('en');

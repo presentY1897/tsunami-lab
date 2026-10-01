@@ -8,7 +8,7 @@ export class LocalizedError extends Error {
 }
 export const messages = { ko, en };
 const tags = { ko: 'ko-KR', en: 'en-US' };
-let locale: Locale = 'ko';
+let locale: Locale = 'en';
 const listeners = new Set<() => void>();
 const bindings = new Map<HTMLElement, Map<string, () => void>>();
 const numbers = new Map<string, Intl.NumberFormat>();
@@ -18,9 +18,9 @@ export function parseLocale(value: string | null | undefined): Locale | null {
   const language = value?.toLowerCase().split(/[-_]/)[0];
   return language === 'ko' || language === 'en' ? language : null;
 }
-/** URL → saved choice → first supported browser language → Korean fallback. */
-export function resolveLocale(query: string | null, saved: string | null, languages: readonly string[]): Locale {
-  return parseLocale(query) ?? parseLocale(saved) ?? languages.map(parseLocale).find((l): l is Locale => l !== null) ?? 'ko';
+/** URL → saved choice → English default. */
+export function resolveLocale(query: string | null, saved: string | null): Locale {
+  return parseLocale(query) ?? parseLocale(saved) ?? 'en';
 }
 export function t(key: MessageKey, params: Record<string, string | number> = {}): string {
   return (messages[locale][key] ?? ko[key]).replace(/\{(\w+)\}/g, (token, name: string) => Object.hasOwn(params, name) ? String(params[name]) : token);
@@ -91,8 +91,8 @@ export function setLocale(next: Locale): void {
 }
 export function initI18n(): void {
   let saved: string | null = null;
-  try { saved = localStorage.getItem('locale'); } catch { /* Use URL/browser preference. */ }
-  locale = resolveLocale(new URLSearchParams(location.search).get('lang'), saved, navigator.languages);
+  try { saved = localStorage.getItem('locale'); } catch { /* Use URL/default language. */ }
+  locale = resolveLocale(new URLSearchParams(location.search).get('lang'), saved);
   applyDocument();
   document.getElementById('language')?.addEventListener('change', event => {
     const next = parseLocale((event.target as HTMLSelectElement).value);

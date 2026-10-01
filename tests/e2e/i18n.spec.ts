@@ -19,7 +19,7 @@ test('switches all UI and cities without resetting the simulation; saves and sha
   await page.goto(`${APP}?lon=142.85&lat=38.3&kind=quake&mw=9&strike=193&turbo=6`);
   await page.waitForFunction(() => (window as unknown as { __app?: Probe }).__app?.ready);
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
-  await expect(page).toHaveTitle('Tsunami Lab');
+  await expect(page).toHaveTitle('Tsunami Play — Interactive 3D Tsunami Simulator');
   await expect(page.locator('#globe')).toHaveAttribute('aria-label', /Drag to rotate/);
   await expect(page.locator('#faultinfo')).toContainText('Fault');
   await page.waitForFunction(() => (window as unknown as { __app: Probe }).__app.cities.cities.some(c => c.name === 'Tokyo'));
@@ -87,6 +87,43 @@ test('language switching works when local storage is blocked', async ({ page }) 
   await page.goto(`${APP}?lang=en`);
   await page.waitForFunction(() => (window as unknown as { __app?: Probe }).__app?.ready);
   await page.locator('#language').selectOption('ko');
-  await expect(page).toHaveTitle('쓰나미 랩');
+  await expect(page).toHaveTitle('쓰나미 플레이 — 인터랙티브 3D 쓰나미 시뮬레이터');
   await expect(page).toHaveURL(/lang=ko/);
+});
+
+
+test('first visit defaults to English even in a Korean browser', async ({ browser }) => {
+  const context = await browser.newContext({ locale: 'ko-KR' });
+  try {
+    const page = await context.newPage();
+    await page.goto(APP);
+    await expect(page.locator('#readout')).toHaveText('Tap the ocean to begin.');
+    await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+    await expect(page).toHaveTitle('Tsunami Play — Interactive 3D Tsunami Simulator');
+    await expect(page.locator('#language')).toHaveValue('en');
+    await page.locator('#language').selectOption('ko');
+    await page.goto(APP);
+    await expect(page.locator('#language')).toHaveValue('ko');
+    await expect(page).toHaveTitle('쓰나미 플레이 — 인터랙티브 3D 쓰나미 시뮬레이터');
+    await page.goto(`${APP}?lang=en`);
+    await expect(page.locator('#language')).toHaveValue('en');
+  } finally {
+    await context.close();
+  }
+});
+
+
+test('service description is readable without JavaScript', async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 390, height: 844 } });
+  try {
+    const page = await context.newPage();
+    await page.goto(APP);
+    await expect(page).toHaveTitle('Tsunami Play — Interactive 3D Tsunami Simulator');
+    await page.locator('#about summary').click();
+    await expect(page.locator('#about h2')).toBeVisible();
+    await expect(page.locator('#about')).toContainText('undersea earthquakes and asteroid impacts');
+    await expect(page.locator('noscript p')).toContainText('Enable JavaScript');
+  } finally {
+    await context.close();
+  }
 });

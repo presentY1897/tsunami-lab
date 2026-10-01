@@ -1,5 +1,9 @@
 import { expect, test } from '@playwright/test';
 
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('locale', 'ko'));
+});
+
 const APP = 'http://localhost:5191/';
 /** docs/DATA-BUDGET.md 1절: 첫 화면 상한. */
 const FIRST_SCREEN_LIMIT = 650 * 1024;

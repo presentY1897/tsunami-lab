@@ -761,6 +761,8 @@ async function start(): Promise<void> {
     speedValue.value = String(finiteSpeed);
     $('speedMax').setAttribute('aria-pressed', String(next === Infinity));
     speedValue.disabled = next === Infinity;
+    $('speedNumeric').hidden = next === Infinity;
+    $('speedMaxValue').hidden = next !== Infinity;
     drawDirty = true;
   };
   speedRange.addEventListener('input', () => setSpeed(speedRange.valueAsNumber));

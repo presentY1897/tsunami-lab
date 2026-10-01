@@ -1,11 +1,17 @@
 import type { MessageKey } from './ko';
 
 export const en = {
+  "about.limit": "This is an educational simulation using simplified physics and terrain. It is not a tsunami warning system or a tool for real-world flood predictions or evacuation decisions.",
+  "about.steps": "Tap the ocean to choose a location. Adjust the earthquake or asteroid settings, optionally select a coast, then choose Create tsunami and press Play. Use the timeline and speed controls to explore the result, or copy a link to share your scenario.",
+  "about.description": "Tsunami Play is an interactive browser simulation of tsunamis caused by undersea earthquakes and asteroid impacts. Change the source and sea level, watch waves spread across the globe, and explore their effects on coastlines.",
+  "about.heading": "Explore tsunamis on a 3D globe",
+  "about.title": "About & how to play",
+  "seo.title": "Tsunami Play — Interactive 3D Tsunami Simulator",
   "sea.label": "Sea level rise",
   "sea.note": "Changing sea level resets the simulation.",
   "sea.reset": "Reset level to 0 m",
-  "app.title": "Tsunami Lab",
-  "app.description": "Explore how tsunamis from earthquakes and asteroid impacts spread across the globe.",
+  "app.title": "Tsunami Play",
+  "app.description": "Create earthquakes and asteroid impacts in an interactive 3D tsunami simulator. Explore wave propagation, coastal effects, and sea level rise in your browser.",
   "view.reset": "Reset view",
   "view.boundaries": "Boundaries",
   "view.cities": "Cities",
@@ -32,7 +38,7 @@ export const en = {
   "speed.thirty": "30 min",
   "speed.max": "Max",
   "flood.toggle": "Flood extent",
-  "wave.real": "True scale",
+  "wave.real": "Match terrain",
   "wave.coastReal": "Auto",
   "wave.boost": "Exaggerated",
   "source.edit": "Edit source",
