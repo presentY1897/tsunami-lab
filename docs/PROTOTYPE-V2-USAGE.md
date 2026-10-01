@@ -1,6 +1,6 @@
 # 프로토타입 2 실행과 구현
 
-2026-09-21에 종료한 `src/` 프로토타입의 설명이다. 아래 기능과 측정값은 당시 기준이며, 현재 `app/`의 기능은 [README](../README.md), 남은 작업은 [계획](PLAN.md)을 본다. 방향을 바꾼 이유는 [프로토타입 2 정리](PROTOTYPE-V2.md)에 있다.
+2026-09-21에 종료한 `src/` 프로토타입의 설명이다. 프로토타입의 코드는 2026-10-01에 저장소에서 지웠다(D-047). git 태그 `prototype-v2`에 마지막 상태가 있다. 아래 명령은 그 태그를 받아야 돈다. 아래 기능과 측정값은 당시 기준이며, 현재 `app/`의 기능은 [README](../README.md), 남은 작업은 [계획](PLAN.md)을 본다. 방향을 바꾼 이유는 [프로토타입 2 정리](PROTOTYPE-V2.md)에 있다.
 
 
 ## 실행
@@ -38,8 +38,8 @@ npm run test:e2e   # 헤드리스 브라우저 검증 (처음이면 npx playwrig
 ## 폴더
 
 ```
-src/geo       격자 계획, 타일 디코딩, DEM 합성 (Mercator 수학은 app/src/geo)
-src/physics   소행성, 발생원 래스터화 (Okada, 단층, CPU 기준 솔버는 app/src/physics)
+src/geo       Mercator 수학, 격자 계획, 타일 디코딩, DEM 합성
+src/physics   Okada, 단층, 소행성, 발생원 래스터화, CPU 기준 솔버
 src/gpu       셰이더와 다단계 GPU 솔버
 src/render    3D 장면, 지형과 수면 재질
 src/picker    설정용 2D 지도, 지도 입히기

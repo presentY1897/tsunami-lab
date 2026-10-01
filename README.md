@@ -2,23 +2,22 @@
 
 지구 위에서 해저 지진이나 소행성 충돌을 일으키고, 쓰나미의 전파와 해안 영향을 살펴보는 웹 시뮬레이터다. 삼각형 면으로 지형과 수면을 표현하고, 계산은 브라우저의 WebGL2 GPU에서 수행한다. 서버는 정적 파일만 제공한다.
 
-현재 개발 대상은 `app/`이다. `src/`에는 이전 프로토타입 2와 현재 앱이 재사용하는 물리·좌표 모듈이 있다. 모바일 사용을 목표로 개발 중이며, 실제 폰 성능 측정은 남아 있다.
+앱의 코드는 `app/`에 있다. 모바일 사용을 목표로 개발 중이며, 실제 폰 성능 측정은 남아 있다.
 
 ## 실행과 검사
 
 ```bash
 npm install
-npm run app:dev       # 현재 앱: http://localhost:5190
-npm run app:build     # 타입 검사 + 현재 앱 빌드 → app/dist
+npm run app:dev       # 개발 서버: http://localhost:5190
+npm run app:build     # 타입 검사 + 빌드 → app/dist
 npm run app:preview   # 빌드 결과 미리보기
 npm run typecheck
-npm test              # 현재 앱과 공통 물리 모듈 등의 단위 테스트
-npm run test:e2e      # 현재 앱과 프로토타입의 브라우저 검사
+npm test              # 단위 테스트
+npm run test:e2e      # 브라우저 검사
+npm run check         # 타입 검사 + 단위 테스트 + 빌드
 ```
 
 브라우저 검사를 처음 실행할 때는 `npx playwright install chromium`이 필요하다. `npm run test:e2e:gpu`는 WSLg와 Mesa d3d12를 사용하는 실제 GPU 검증 환경용이다([D-041](docs/decisions/DECISIONS.md#d-041-검증은-wslg-창에-mesa-d3d12-드라이버를-강제해-실제-gpu로-돌린다-2026-09-23)).
-
-`npm run dev`, `npm run build`는 이전 프로토타입용이다. `npm run check`는 타입 검사와 단위 테스트 뒤에 프로토타입과 현재 앱을 모두 빌드한다.
 
 ## 현재 사용 흐름
 
@@ -71,20 +70,14 @@ Cloudflare Pages에서는 저장소 루트를 기준으로 빌드 명령 `npm ru
 ## 폴더
 
 ```text
-app/src       현재 앱: 지구 화면, 지형, 자료 로더, GPU 계산, 침수 판정, 좌표·발생원 모형과 CPU 기준 솔버
+app/src       앱: 지구 화면, 지형, 자료 로더, GPU 계산, 침수 판정, 좌표·발생원 모형과 CPU 기준 솔버
 app/public    자체 호스팅하는 지형·경계선·도시 자료
 scripts       자료 생성 스크립트
-src/physics   이전 프로토타입의 소행성 공동과 발생원 래스터화
-src/geo       이전 프로토타입의 격자·지형 처리
-src/app       이전 프로토타입의 화면과 시뮬레이션 조립
-src/gpu       이전 프로토타입의 GPU 솔버
-src/render    이전 프로토타입의 three.js 렌더링
-src/picker    이전 프로토타입의 2D 지도
 tests        단위 테스트와 브라우저 검사
 dev          검증 페이지, 측정·스크린샷 스크립트
 ```
 
-이전 프로토타입은 [실행과 구현](docs/PROTOTYPE-V2-USAGE.md), [종료 당시 정리](docs/PROTOTYPE-V2.md), [작업 기록](docs/tasks/README.md)을 참고한다.
+이전 프로토타입(실제 지도와 three.js를 쓰던 버전)의 코드는 지웠고 git 태그 `prototype-v2`에 남아 있다. 기록은 [실행과 구현](docs/PROTOTYPE-V2-USAGE.md), [종료 당시 정리](docs/PROTOTYPE-V2.md), [작업 기록](docs/tasks/README.md)에 있다.
 
 ## 자료 출처
 

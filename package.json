@@ -5,14 +5,11 @@
   "type": "module",
   "description": "NUKEMAP식 3D 쓰나미 시뮬레이터. 지진과 소행성 충돌로 생긴 쓰나미의 전파와 내륙 침수를 브라우저 GPU에서 계산한다.",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc --noEmit && vite build",
-    "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "playwright test",
     "test:e2e:gpu": "GPU=1 playwright test",
-    "check": "npm run typecheck && npm run test && vite build && vite build --config app/vite.config.ts",
+    "check": "npm run typecheck && npm run test && vite build --config app/vite.config.ts",
     "app:dev": "vite --config app/vite.config.ts",
     "app:build": "tsc --noEmit && vite build --config app/vite.config.ts",
     "app:preview": "vite preview --config app/vite.config.ts",
@@ -20,16 +17,10 @@
     "data:lines": "node scripts/build-boundaries.ts",
     "data:cities": "node scripts/build-cities.ts"
   },
-  "dependencies": {
-    "maplibre-gl": "^6.10.0",
-    "three": "^0.186.0"
-  },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
-    "@types/geojson": "^7946.0.16",
     "@types/node": "^26.6.2",
     "@types/pngjs": "^6.0.5",
-    "@types/three": "^0.186.0",
     "@types/topojson-client": "^3.1.5",
     "@types/topojson-specification": "^1.0.5",
     "playwright": "^1.63.0",

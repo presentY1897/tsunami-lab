@@ -1,4 +1,4 @@
-// 비선형 천수방정식의 CPU 기준 구현. 앱의 GPU 셰이더(../sim/shaders.ts)와 프로토타입의 셰이더(src/gpu/shaders.ts)가 같은 식을 구현하며, 이 파일이 검증의 기준이다.
+// 비선형 천수방정식의 CPU 기준 구현. 앱의 GPU 셰이더(../sim/shaders.ts)가 같은 식을 구현하며, 이 파일이 검증의 기준이다.
 // 앱 번들에는 들어가지 않는다. 단위 테스트와 dev/의 GPU 검증 페이지가 쓴다.
 //
 // 기법: Stelling & Duinmeijer (2003) 계열의 엇갈린 격자(Arakawa C) 기법.

@@ -1,6 +1,6 @@
 # 프로토타입 2 품질 게이트
 
-이 문서의 성능 목표와 시나리오 기준은 `src/` 프로토타입 2의 기록이다. 현재 `app/`의 범위와 남은 검증은 [계획](../PLAN.md), 실행·검사 명령은 [README](../../README.md)를 본다. `npm run check`는 프로토타입과 현재 앱을 모두 빌드한다.
+이 문서의 성능 목표와 시나리오 기준은 `src/` 프로토타입 2의 기록이다. 프로토타입의 코드는 2026-10-01에 저장소에서 지웠다(D-047). git 태그 `prototype-v2`에 마지막 상태가 있다. 아래에 나오는 `src/` 경로, `gpu-solver.spec.ts`, `dev/shoot.mjs`는 그 태그에서만 볼 수 있다. 현재 `app/`의 범위와 남은 검증은 [계획](../PLAN.md), 실행·검사 명령은 [README](../../README.md)를 본다. `npm run check`는 현재 앱을 빌드한다.
 
 변경을 합치기 전에 통과해야 하는 기준이다. 기준을 바꿀 때는 이유를 [결정 이력](../decisions/DECISIONS.md)에 남긴다.
 
@@ -28,7 +28,7 @@ npm run test:e2e   # 헤드리스 브라우저: GPU 솔버 검증, 앱 구동
 | GPU와 CPU 일치 | 400스텝 뒤 수위 RMS 차이 2×10⁻³ m 미만 (실측 2×10⁻⁷) | `gpu-solver.spec.ts` |
 | 중첩 격자 | 자식 수위가 부모와 35% 안에서 일치 (실측 약 3%) | `gpu-solver.spec.ts` |
 
-수치 기법(`app/src/physics/swe-cpu.ts`)을 바꾸면 셰이더(`src/gpu/shaders.ts`, `app/src/sim/shaders.ts`)도 같이 바꾼다. 두 구현이 어긋나면 e2e가 잡는다.
+수치 기법(`app/src/physics/swe-cpu.ts`)을 바꾸면 셰이더(`app/src/sim/shaders.ts`)도 같이 바꾼다. 두 구현이 어긋나면 e2e가 잡는다.
 
 ## 3. 시나리오 점검 (수동, 물리나 지형 처리를 바꿨을 때)
 

@@ -380,3 +380,9 @@
 - **배경**: 현재 앱(`app/`)이 프로토타입 2(`src/`)의 모듈 다섯 개(Mercator 좌표, 단층과 Okada 변위, 상수, 크레이터 지름, CPU 기준 솔버)를 가져다 썼다. 앱의 물리가 닫아 둔 프로토타입 폴더에 있어 어디를 고쳐야 하는지가 흐렸고, `npm run check`는 프로토타입만 빌드했다.
 - **결정**: 같이 쓰던 모듈을 `app/src/geo`와 `app/src/physics`로 옮긴다. 앱은 `app/` 밖의 코드를 가져오지 않고, 프로토타입이 앱의 모듈을 가져다 쓴다. 프로토타입에만 필요한 것(소행성 공동의 사전 보정, 발생원 래스터화, 타일·DEM 처리)은 `src/`에 남긴다. `npm run check`는 프로토타입과 앱을 둘 다 빌드한다.
 - **남긴 것**: 프로토타입은 지우지 않았다. 그래서 `three`와 `maplibre-gl`이 의존성에 남는다. 앱 번들에는 들어가지 않는다.
+
+## D-047 프로토타입 2의 코드를 저장소에서 지운다 (2026-10-01, 사용자)
+
+- **배경**: D-046으로 앱이 프로토타입에 기대지 않게 된 뒤에도 프로토타입(`src/`, 루트 `index.html`)과 그것만 쓰는 `three`, `maplibre-gl`이 남아 있었다. 2026-09-21에 닫은 뒤로 개발하지 않는 코드다.
+- **결정**: 프로토타입의 코드, 그 검사(`app.spec.ts`, `gpu-solver.spec.ts`, 격자·DEM·공동 사전 보정 단위 테스트), 전용 스크립트(`dev/gpu-check`, `dev/shoot.mjs`, `dev/measure-network.mjs`)를 지우고 `three`, `maplibre-gl`, `@types/three`, `@types/geojson`을 뺀다. `npm run dev`, `build`, `preview`도 없앤다. 앱의 명령은 `app:dev`, `app:build`, `app:preview` 그대로다. 마지막 상태는 git 태그 `prototype-v2`에 있다.
+- **남긴 것**: 프로토타입의 문서(`PROTOTYPE-V2.md`, `PROTOTYPE-V2-USAGE.md`, `tasks/`)는 기록으로 둔다. 저장소 루트의 개발 서버(5183)는 `dev/app-gpu-check.html`을 띄우는 데 계속 쓴다.

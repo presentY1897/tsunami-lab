@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import { okadaUz } from '../../app/src/physics/okada';
 import { buildQuakeField, faultFromMagnitude, subdivideFault, type QuakeParams } from '../../app/src/physics/quake';
 import { transientCraterDiameter, type ImpactParams } from '../../app/src/physics/impact';
-import { buildImpactCavity, buildImpactField } from '../../src/physics/impact';
 
 const DEG = Math.PI / 180;
 
@@ -103,25 +102,5 @@ describe('소행성 충돌', () => {
   it('500 m 암석 소행성의 수중 크레이터 지름은 약 10.5 km다', () => {
     expect(transientCraterDiameter(p) / 1000).toBeGreaterThan(9.5);
     expect(transientCraterDiameter(p) / 1000).toBeLessThan(11.5);
-  });
-  it('공동은 순부피가 0에 가깝고 보정 배율이 유한하다', () => {
-    const cav = buildImpactCavity(p, 3000, 2000)!;
-    expect(cav.gainC).toBeGreaterThan(0.05);
-    expect(cav.gainC).toBeLessThan(20);
-    const f = buildImpactField(p, cav);
-    let sum = 0, absSum = 0;
-    const step = 0.005;
-    for (let lat = 38.5; lat <= 40.5; lat += step) {
-      for (let lon = 133; lon <= 135; lon += step) {
-        const e = f.eta0(lon, lat);
-        sum += e;
-        absSum += Math.abs(e);
-      }
-    }
-    expect(Math.abs(sum) / absSum).toBeLessThan(0.02);
-    expect(f.eta0(134, 39.5)).toBeLessThan(-100);
-  });
-  it('육지에 떨어지면 쓰나미가 없다', () => {
-    expect(buildImpactCavity(p, 0, 2000)).toBeNull();
   });
 });

@@ -18,8 +18,8 @@ export default defineConfig({
       : { launchOptions: { args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] } }),
   },
   webServer: [
-    // 프로토타입 2
-    { command: 'npx vite --port 5183 --strictPort', url: 'http://localhost:5183', reuseExistingServer: true, timeout: 60_000 },
+    // dev/의 검증 페이지(GPU 계산부와 CPU 기준 구현 비교). 저장소 루트를 그대로 내보내는 개발 서버다
+    { command: 'npx vite --port 5183 --strictPort', url: 'http://localhost:5183/dev/app-gpu-check.html', reuseExistingServer: true, timeout: 60_000 },
     // 실제 앱(app/). 전송량을 재야 하므로 빌드한 결과물을 띄운다.
     { command: 'npx vite build --config app/vite.config.ts && npx vite preview --config app/vite.config.ts --port 5191 --strictPort', url: 'http://localhost:5191', reuseExistingServer: true, timeout: 120_000 },
   ],
