@@ -114,7 +114,8 @@ export const ko = {
   "error.start": "앱을 시작하지 못했습니다. 브라우저의 WebGL2 지원과 네트워크 연결을 확인해 주세요.",
   "error.sim": "계산을 준비하지 못했습니다. 기기의 GPU 지원과 네트워크 연결을 확인한 뒤 다시 시도해 주세요.",
   "error.webgl": "이 브라우저는 WebGL2를 지원하지 않습니다.",
-  "error.float": "이 기기는 부동소수점 렌더 타깃을 지원하지 않아 파도를 계산할 수 없습니다."
+  "error.float": "이 기기는 부동소수점 렌더 타깃을 지원하지 않아 파도를 계산할 수 없습니다.",
+  "error.context": "그래픽 연결이 끊겨 화면을 그릴 수 없습니다. 화면을 누르면 다시 불러옵니다."
 } as const;
 
 export type MessageKey = keyof typeof ko;

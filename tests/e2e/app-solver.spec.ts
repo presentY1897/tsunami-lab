@@ -5,6 +5,7 @@ interface Check {
   cpu: { steps: number; maxDiff: number; floodedLand: number; maxEta: number; arrived: number };
   periodic: { maxDiff: number; maxEta: number; crossed: number; walledDiff: number };
   nested: { finite: boolean; childActive: boolean; childSteps: number; maxParentInRect: number; maxAbsDiff: number; ratio: number };
+  sleepChain: { midWake: number; leafWake: number; midAsleep: number; leafAsleep: number; maxActiveS: number; leafRan: number; leafActive: boolean; midActive: boolean; t: number; tGlobal: number; dt: number };
 }
 
 test('앱의 GPU 계산부가 CPU 기준 구현과 같은 답을 내고, 경도 방향으로 이어진다', async ({ page }) => {
@@ -33,4 +34,18 @@ test('앱의 GPU 계산부가 CPU 기준 구현과 같은 답을 내고, 경도 
   expect(r.nested.childSteps).toBeGreaterThan(10);
   expect(r.nested.maxParentInRect).toBeGreaterThan(0.02);
   expect(r.nested.maxAbsDiff).toBeLessThan(0.35 * r.nested.maxParentInRect + 0.01);
+
+  // 격자 사슬이 잠드는 순서(D-045): 중간 격자가 먼저 깨지만, 해안 격자가 제 시간을 다 돌고 잠든 뒤에야 잠든다
+  const s = r.sleepChain;
+  expect(s.midWake).toBeGreaterThan(0);
+  expect(s.leafWake).toBeGreaterThan(s.midWake);
+  expect(s.leafWake).toBeLessThan(s.midWake + s.maxActiveS); // 중간 격자의 시간이 다 되기 전에 해안이 깼다
+  expect(s.leafActive).toBe(false);
+  expect(s.midActive).toBe(false);
+  // 깨어난 시각은 부모 스텝 단위로 재므로 한 스텝의 여유를 둔다. 고치기 전에는 중간 격자가 잠들 때 같이 멈춰 절반쯤만 돌았다
+  expect(s.leafRan).toBeGreaterThan(s.maxActiveS - s.dt);
+  expect(s.midAsleep).toBeGreaterThanOrEqual(s.leafAsleep);
+  // 격자들이 잠든 뒤에도 전체 시계는 가장 거친 격자를 따라 흐른다
+  expect(s.t).toBe(s.tGlobal);
+  expect(s.tGlobal).toBeGreaterThan(s.leafAsleep);
 });

@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
 import { describe, expect, it } from 'vitest';
-import { chunksForBox, decodeChunk, type Gunzip } from '../../app/src/data/chunks';
+import { chunksForBox, decodeChunk, nearestChunks, type Gunzip } from '../../app/src/data/chunks';
 import { assembleGrid, splitFile } from '../../app/src/data/codec';
 import { CHUNK_SIZE, GLOBAL_FILE, chunkFile } from '../../app/src/data/layout';
 
@@ -16,6 +16,18 @@ describe('10 km 조각', () => {
     expect(chunksForBox(170, 2, -170, 10)).toEqual([[15, 7], [0, 7]]);
     // 자료가 없는 고위도는 비어 있다
     expect(chunksForBox(0, 80, 10, 84)).toEqual([]);
+  });
+
+  it('받을 조각은 보는 지점에 가까운 것부터 고른다', () => {
+    // 유럽을 넓게 볼 때(경도 -15~45, 위도 23~73)는 조각 16개가 걸친다. 여섯 개만 받는다면 화면 가운데를 품은 조각이 먼저다.
+    const box = chunksForBox(-15, 23, 45, 73);
+    expect(box.length).toBe(16);
+    const picked = nearestChunks(box, 15, 48, 6);
+    expect(picked.length).toBe(6);
+    expect(picked[0]).toEqual([8, 5]);
+    expect(box.slice(0, 6)).not.toContainEqual([8, 5]); // 목록 순서대로 자르면 가운데 조각이 빠진다
+    // 날짜변경선 건너편의 조각이 같은 쪽의 먼 조각보다 가깝다
+    expect(nearestChunks([[0, 7], [13, 7], [15, 7]], 179, 5, 2)).toEqual([[15, 7], [0, 7]]);
   });
 
   it('이웃한 조각은 경계에서 매끄럽게 이어지고, 전 지구 자료와 같은 지형을 가리킨다', async () => {

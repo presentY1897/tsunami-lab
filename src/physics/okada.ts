@@ -67,3 +67,41 @@ export function okadaUz(
   }
   return uz;
 }
+
+/**
+ * 주향으로 이어 붙은 소단층 한 줄의 연직 변위. 깊이·폭·경사가 같고 미끄러짐만 다른 소단층들이다.
+ * okadaUz를 소단층마다 부르면 이웃한 소단층이 맞닿은 모서리를 두 번씩 계산한다. 여기서는 모서리마다 한 번만 계산해
+ * 미끄러짐의 차이를 곱한다. 식은 같고 계산량은 절반이다.
+ * x0은 줄이 시작하는 모서리 기준의 주향 좌표, edges는 그 모서리에서 각 경계까지의 거리(소단층 수 + 1개),
+ * slips는 소단층별 미끄러짐, cosRake와 sinRake는 주향이동과 경사이동의 비율이다. 나머지는 okadaUz와 같다.
+ */
+export function okadaUzRow(
+  x0: number,
+  edges: ArrayLike<number>,
+  slips: ArrayLike<number>,
+  y: number,
+  W: number,
+  d: number,
+  dipRad: number,
+  cosRake: number,
+  sinRake: number,
+): number {
+  const dip = Math.min(dipRad, (89.9 * Math.PI) / 180);
+  const t: Trig = { sd: Math.sin(dip), cd: Math.cos(dip) };
+  const p = y * t.cd + d * t.sd;
+  let q = y * t.sd - d * t.cd;
+  if (Math.abs(q) < 1e-6) q = 1e-6;
+  const n = slips.length;
+  let sum = 0;
+  for (let k = 0; k <= n; k++) {
+    // 경계 k의 왼쪽 소단층은 빼고 오른쪽 소단층은 더한다
+    const c = (k < n ? slips[k] : 0) - (k > 0 ? slips[k - 1] : 0);
+    if (c === 0) continue;
+    const xi = x0 - edges[k];
+    let g = 0;
+    if (sinRake !== 0) g += sinRake * (dipSlipKernel(xi, p, q, t) - dipSlipKernel(xi, p - W, q, t));
+    if (cosRake !== 0) g += cosRake * (strikeSlipKernel(xi, p, q, t) - strikeSlipKernel(xi, p - W, q, t));
+    sum += c * g;
+  }
+  return -sum / (2 * Math.PI);
+}

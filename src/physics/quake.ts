@@ -1,6 +1,6 @@
 import { DEG } from '../geo/mercator';
 import { KM_PER_DEG, RIGIDITY, SEISMOGENIC_DEPTH } from './constants';
-import { okadaUz } from './okada';
+import { okadaUzRow } from './okada';
 
 export type SlipModel = 'uniform' | 'tapered';
 
@@ -119,8 +119,19 @@ export function buildQuakeField(p: QuakeParams): QuakeField {
   const topKm = p.topKm;
   const kx = KM_PER_DEG * Math.cos(p.lat * DEG), ky = KM_PER_DEG;
   const rake = p.rake * DEG;
-  const cr = Math.cos(rake), sr = Math.sin(rake);
+  // 순수 역단층(90도)의 cos은 6e-17이 나온다. 0으로 두지 않으면 값에 보태지지도 않는 주향이동 항을 통째로 계산한다.
+  const snap = (v: number): number => (Math.abs(v) < 1e-12 ? 0 : v);
+  const cr = snap(Math.cos(rake)), sr = snap(Math.sin(rake));
   const reachKm = (Lk + Wh) / 2 + Math.max(150, Wk);
+
+  // 깊이가 같은 소단층을 한 줄로 묶는다. 한 줄 안에서는 주향 방향 경계만 다르다.
+  const rows: { botC: number; wid: number; edges: number[]; slips: number[] }[] = [];
+  for (const s of subfaults) {
+    let row = rows[rows.length - 1];
+    if (!row || row.botC !== s.c0 + s.wid) rows.push(row = { botC: s.c0 + s.wid, wid: s.wid, edges: [s.a0], slips: [] });
+    row.slips.push(s.slip);
+    row.edges.push(s.a0 + s.len);
+  }
 
   const uz = (lon: number, lat: number): number => {
     const E = (lon - p.lon) * kx, N = (lat - p.lat) * ky;
@@ -128,14 +139,10 @@ export function buildQuakeField(p: QuakeParams): QuakeField {
     const along = E * sx + N * sy + Lk / 2; // 단층 시작 모서리 기준 주향 좌표
     const down = E * dx + N * dy + Wh / 2; // 윗변 기준 경사 방향 수평 거리
     let sum = 0;
-    for (const s of subfaults) {
+    for (const r of rows) {
       // 소단층 아래쪽 변이 Okada 좌표의 y = 0
-      const botC = s.c0 + s.wid;
-      const dBot = topKm + botC * sd;
-      const x = along - s.a0;
-      const y = botC * cd - down;
       // slip은 m, 길이는 km이지만 uz는 slip에 선형이고 길이 비율에만 의존하므로 단위가 섞여도 된다
-      sum += okadaUz(x, y, s.len, s.wid, dBot, fault.dipRad, s.slip * cr, s.slip * sr);
+      sum += okadaUzRow(along, r.edges, r.slips, r.botC * cd - down, r.wid, topKm + r.botC * sd, fault.dipRad, cr, sr);
     }
     return sum;
   };

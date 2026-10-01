@@ -67,9 +67,8 @@ export class NestedSolver {
     return false;
   }
 
-  /** 현재 시각. 깨어 있는 가장 세밀한 격자의 시각이다. */
+  /** 현재 시각. 가장 거친 격자의 시각이다. 이 격자는 늘 돌고, 깨어 있는 자식은 부모 한 스텝이 끝날 때마다 같은 시각에 와 있다. */
   get t(): number {
-    for (let i = this.levels.length - 1; i > 0; i--) if (this.levels[i].active) return this.levels[i].t;
     return this.levels[0].t;
   }
   get dt(): number {
@@ -107,10 +106,6 @@ export class NestedSolver {
   private advance(i: number, frac: number): void {
     const lv = this.levels[i];
     lv.step(1, frac, 0);
-    if (i > 0 && lv.t - this.activeSince[i] > this.maxActive[i]) {
-      lv.active = false;
-      this.spent[i] = true;
-    }
     for (const c of this.children[i]) {
       const child = this.levels[c];
       if (!child.active) {
@@ -121,8 +116,22 @@ export class NestedSolver {
       }
       const ratio = this.ratios[c];
       // 자식 스텝마다 부모의 직전 상태와 현재 상태 사이를 k/ratio로 보간한다
-      for (let k = 1; k <= ratio; k++) this.advance(c, k / ratio);
+      for (let k = 1; k <= ratio; k++) {
+        // 자식이 이 스텝 안에서 잠들면 남은 스텝은 돌지 않는다
+        if (!child.active) break;
+        this.advance(c, k / ratio);
+      }
     }
+    // 자식은 부모의 값을 받아 돌므로, 깨어 있는 자식이 있으면 시간이 다 돼도 잠들지 않는다.
+    // 전에는 중간 격자가 먼저 잠들어 해안 격자가 깨어 있는 채로 멈췄다(D-045).
+    if (i > 0 && lv.t - this.activeSince[i] > this.maxActive[i] && !this.children[i].some((c) => this.levels[c].active)) this.sleep(i);
+  }
+
+  /** 격자를 재운다. 아직 깨어나지 못한 자손은 부모 없이 돌 수 없으므로 같이 끝낸다. */
+  private sleep(i: number): void {
+    this.levels[i].active = false;
+    this.spent[i] = true;
+    for (const c of this.children[i]) this.sleep(c);
   }
 
   /** 부모 격자에서 자식이 차지하는 영역(여유 포함)을 읽어 파가 닿았는지 본다. 동기식으로 읽는다(결정 D-007). */

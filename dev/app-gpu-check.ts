@@ -97,9 +97,41 @@ function nested() {
   return res;
 }
 
+function sleepChain() {
+  // 부모(줌 6) 안에 중간(줌 8), 그 안에 해안(줌 10). 둘 다 깨어난 뒤 600초 돌고 잠든다.
+  // 중간이 먼저 깨므로 시간이 먼저 다 되지만, 해안이 제 몫을 다 돌 때까지 깨어 있어야 한다(D-045).
+  const mk = (zoom: number, px0: number, py0: number, n: number, cell: number, hump: (i: number, j: number) => number): GridInput => {
+    const bed = new Float32Array(n * n).fill(-4000), eta0 = new Float32Array(n * n), wet0 = new Uint8Array(n * n).fill(1);
+    for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) eta0[j * n + i] = hump(i, j);
+    return { nx: n, ny: n, bed, eta0, wet0, zoom, px0, py0, world: 256 * 2 ** zoom, eqCell: 1, uniformCell: cell, wrapX: false, sponge: false };
+  };
+  const cellM = (40075016.686 / (256 * 64)) * 0.78, maxActiveS = 600;
+  const parentIn = mk(6, 14000, 6200, 256, cellM, (i, j) => Math.exp(-((i - 90) ** 2 + (j - 128) ** 2) / (2 * 8 * 8)));
+  const midPx = (14000 + 150) * 4, midPy = (6200 + 112) * 4;
+  const midIn = mk(8, midPx, midPy, 128, cellM / 4, () => 0);
+  const leafIn = mk(10, (midPx + 96) * 4, (midPy + 56) * 4, 64, cellM / 16, () => 0);
+  const solver = new NestedSolver(gl, [{ grid: parentIn, parent: -1 }, { grid: midIn, parent: 0, maxActiveS }, { grid: leafIn, parent: 1, maxActiveS }]);
+  const wake = [0, -1, -1], asleep = [0, -1, -1];
+  let guard = 0;
+  while (solver.levels[0].t < 1500 && guard++ < 100000) {
+    solver.step(1);
+    for (const i of [1, 2]) {
+      if (wake[i] < 0 && solver.levels[i].active) wake[i] = solver.levels[0].t;
+      if (asleep[i] < 0 && solver.spent[i]) asleep[i] = solver.levels[0].t;
+    }
+  }
+  const res = {
+    midWake: wake[1], leafWake: wake[2], midAsleep: asleep[1], leafAsleep: asleep[2], maxActiveS,
+    leafRan: solver.levels[2].t - wake[2], leafActive: solver.levels[2].active, midActive: solver.levels[1].active,
+    t: solver.t, tGlobal: solver.levels[0].t, dt: solver.levels[0].dt,
+  };
+  solver.dispose();
+  return res;
+}
+
 declare global { interface Window { __check?: unknown } }
 try {
-  const result = { cpu: againstCpu(), periodic: periodic(), nested: nested() };
+  const result = { cpu: againstCpu(), periodic: periodic(), nested: nested(), sleepChain: sleepChain() };
   document.getElementById('out')!.textContent = JSON.stringify(result, null, 2);
   window.__check = result;
 } catch (e) {

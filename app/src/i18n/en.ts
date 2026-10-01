@@ -116,5 +116,6 @@ export const en = {
   "error.start": "Could not start the app. Check WebGL2 support and your network connection.",
   "error.sim": "Could not prepare the simulation. Check GPU support and your network connection, then try again.",
   "error.webgl": "This browser does not support WebGL2.",
-  "error.float": "This device cannot simulate waves because floating-point render targets are unsupported."
+  "error.float": "This device cannot simulate waves because floating-point render targets are unsupported.",
+  "error.context": "The graphics context was lost, so the globe cannot be drawn. Tap to reload."
 } satisfies Record<MessageKey, string>;

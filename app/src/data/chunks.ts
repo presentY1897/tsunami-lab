@@ -30,6 +30,17 @@ export function chunksForBox(west: number, south: number, east: number, north: n
   return out;
 }
 
+/** 조각 목록에서 경위도에 가까운 순으로 n개를 고른다. 거리는 조각 가운데까지의 Mercator 거리이고 경도는 순환한다. */
+export function nearestChunks(list: [number, number][], lon: number, lat: number, n: number): [number, number][] {
+  const world = CHUNK_SIZE * CHUNK_COLS, px = lonToPx(lon, CHUNK_ZOOM), py = latToPy(lat, CHUNK_ZOOM);
+  const dist = ([x, y]: [number, number]): number => {
+    let dx = Math.abs((x + 0.5) * CHUNK_SIZE - px);
+    dx = Math.min(dx, world - dx);
+    return Math.hypot(dx, (y + 0.5) * CHUNK_SIZE - py);
+  };
+  return list.map((c) => ({ c, d: dist(c) })).sort((a, b) => a.d - b.d).slice(0, n).map((e) => e.c);
+}
+
 /**
  * 10 km 조각 저장소. 필요한 조각만 받아서 디코딩해 두고, 많이 쌓이면 오래 안 쓴 것부터 버린다.
  * 조각 하나는 디코딩하면 256 KB다. 기본 상한 32개면 약 8 MB다.

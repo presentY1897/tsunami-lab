@@ -16,7 +16,7 @@ export const MANNING_N = 0.025;
 /** 이보다 낮은 처오름은 없는 것으로 본다(m). */
 const RUNUP_MIN_M = 0.2;
 
-/** 기록의 G·B·A 채널에 찍는 도달 문턱값(m). 계산 옵션의 arrivalThresholds와 같아야 한다. */
+/** 기록의 G·B·A 채널에 찍는 도달 문턱값(m). 계산 옵션 arrivalThresholds의 기본값도 이것을 쓴다. */
 export const ARRIVAL_THRESHOLDS = [0.02, 0.3, 1.5] as const;
 /** 최대 파고의 이 비율 아래인 가장 높은 문턱값의 도달 시각을 쓴다. */
 export const ARRIVAL_FRACTION = 0.3;

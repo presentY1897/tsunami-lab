@@ -1,4 +1,5 @@
 import { GpuGrid, type Target, type UniformValue } from './gl';
+import { ARRIVAL_THRESHOLDS } from './judge';
 import { CONTINUITY_FRAG, MOMENTUM_FRAG, RECORD_FRAG } from './shaders';
 
 const GRAVITY = 9.81;
@@ -55,7 +56,7 @@ export interface ParentLink {
 }
 
 export const DEFAULT_OPTIONS: SolverOptions = {
-  manningSea: 0.025, manningLand: 0.035, cfl: 0.55, dryEps: 0.05, maxFroude: 2.5, spongeWidth: 16, arrivalThresholds: [0.02, 0.3, 1.5], recordEvery: 2, relaxWidth: 20, gainRef: 0, gainRelaxRef: 0, gainSrc: [0, 0, 1],
+  manningSea: 0.025, manningLand: 0.035, cfl: 0.55, dryEps: 0.05, maxFroude: 2.5, spongeWidth: 16, arrivalThresholds: [...ARRIVAL_THRESHOLDS], recordEvery: 2, relaxWidth: 20, gainRef: 0, gainRelaxRef: 0, gainSrc: [0, 0, 1],
 };
 
 /** 격자 하나에서 비선형 천수방정식을 푼다. 운동량을 먼저 갱신하고, 새 유속으로 연속방정식을 푼다. */
@@ -83,6 +84,7 @@ export class SweSolver {
   constructor(gl: WebGL2RenderingContext, readonly grid: GridInput, options: Partial<SolverOptions> = {}, readonly parent: ParentLink | null = null) {
     this.opt = { ...DEFAULT_OPTIONS, ...options };
     this.gpu = new GpuGrid(gl);
+    this.gpu.warm([MOMENTUM_FRAG, CONTINUITY_FRAG, RECORD_FRAG]);
     this.dummy = this.gpu.texture(1, 1, new Float32Array(4));
     const { nx, ny, bed, eta0, wet0 } = grid;
     const n = nx * ny;

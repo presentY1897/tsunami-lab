@@ -389,7 +389,7 @@ export class GlobeRenderer {
     gl.linkProgram(p);
     if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(`셰이더 연결 실패: ${gl.getProgramInfoLog(p)}`);
     this.program = p;
-    for (const name of ['uSeaLevel', 'uLineStyle', 'uViewProj', 'uOrigin', 'uExag', 'uLight', 'uEye', 'uWaveState', 'uWaveBed', 'uWaveSize', 'uWaveRow0', 'uWaveWorld', 'uWaveOn', 'uWaveVis', 'uWaveRef', 'uGainSrc', 'uFloodRec', 'uFloodBed', 'uFloodSize', 'uFloodOrigin', 'uFloodWorld', 'uFloodBox', 'uFloodOn', 'uSimT', ...[0, 1, 2, 3].flatMap((k) => [`uL${k}State`, `uL${k}Bed`, `uL${k}Size`, `uL${k}Origin`, `uL${k}World`, `uL${k}On`, `uL${k}Gain`])]) {
+    for (const name of ['uSeaLevel', 'uLineStyle', 'uViewProj', 'uOrigin', 'uExag', 'uLight', 'uEye', 'uWaveOn', 'uWaveVis', 'uWaveRef', 'uGainSrc', 'uFloodRec', 'uFloodBed', 'uFloodSize', 'uFloodOrigin', 'uFloodWorld', 'uFloodBox', 'uFloodOn', 'uSimT', ...[0, 1, 2, 3].flatMap((k) => [`uL${k}State`, `uL${k}Bed`, `uL${k}Size`, `uL${k}Origin`, `uL${k}World`, `uL${k}On`, `uL${k}Gain`])]) {
       this.uni[name] = gl.getUniformLocation(p, name);
     }
     // 파도가 없을 때 물릴 1×1 텍스처

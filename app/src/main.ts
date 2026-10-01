@@ -1,6 +1,6 @@
 import { initI18n, LocalizedError, t, th, text, html, attribute, formatNumber, formatClock, onLocaleChange, getLocale, escapeHtml } from './i18n';
 import './style.css';
-import { ChunkStore, chunksForBox } from './data/chunks';
+import { ChunkStore, chunksForBox, nearestChunks } from './data/chunks';
 import { loadEarth, type EarthGrid } from './data/earth';
 import { GLOBAL_FILE } from './data/layout';
 import { decodeLines, splitLinesFile } from './data/lines-codec';
@@ -45,7 +45,6 @@ const COAST_ACTIVE_S = 3 * 3600;
 /** 받은 자료보다 잘게 그리고 있는지. 이때는 화면에 생성된 지형임을 밝힌다(결정 D-018 규칙 6). */
 const DATA_RESOLUTION_KM = 10;
 
-/** 전 지구 계산을 돌리는 시간(s). 태평양을 건너는 데 약 22시간이 걸린다. */
 /** 발생원 미리보기 격자(D-042). 한 변의 셀 수와, 그리기가 요구하는 가장자리 여유. */
 const PREVIEW_N = 96;
 const PREVIEW_MARGIN = 10;
@@ -64,14 +63,13 @@ const QUIET_MIN_T_S = 3600;
 const STALE_S = 6 * 3600;
 /** 섭입대 지진의 전형적인 값. 화면에서는 규모와 방향만 고른다. */
 const QUAKE_DEFAULTS = { dip: 14, rake: 90, topKm: 5, slipModel: 'tapered' } as const;
-/** 소행성 지름 슬라이더(0..1)와 지름(m)의 변환. 50 m에서 3 km까지 로그 눈금. */
-/** 소행성 지름 슬라이더는 로그 눈금이다. 50 m에서 10 km까지(D-035). */
+/** 소행성 지름 슬라이더(0..1)와 지름(m)의 변환. 로그 눈금이고 50 m에서 10 km까지다(D-035). */
 const diamFromT = (t: number): number => Math.round(10 ** (1.699 + t * (4 - 1.699)) / 10) * 10;
 const tFromDiam = (d: number): number => (Math.log10(d) - 1.699) / (4 - 1.699);
 const fmtDiam = (d: number): string => (d >= 1000 ? `${formatNumber(d / 1000, 1)} km` : `${formatNumber(d)} m`);
 /** 침수 통계를 다시 읽는 간격(ms). 해안 격자 기록 1 MB를 동기식으로 읽으므로 자주 하지 않는다. */
 const STATS_INTERVAL_MS = 1500;
-/** 경험식 판정(D-031)을 위해 발생원 격자(1 MB)와 전 지구 격자(8 MB)의 기록을 읽는 간격(ms). */
+/** 경험식 판정(D-031)을 위해 발생원 격자(1 MB)와 전 지구 격자(8 MB)의 기록을 읽는 간격(ms). 계산이 멈추면 간격과 무관하게 바로 읽는다. */
 const JUDGE_SOURCE_INTERVAL_MS = 2000;
 const JUDGE_GLOBAL_INTERVAL_MS = 8000;
 /** 실제 경계선(해안선, 국경). 110m은 첫 화면에서, 50m은 이보다 가까이 볼 때 받는다(km). */
@@ -284,7 +282,8 @@ async function start(): Promise<void> {
     const halfLon = Math.min(60, half / Math.max(0.25, Math.cos((camera.lat * Math.PI) / 180)));
     const norm = (l: number): number => ((((l + 180) % 360) + 360) % 360) - 180;
     const list = chunksForBox(norm(camera.lon - halfLon), Math.max(-84, camera.lat - half), norm(camera.lon + halfLon), Math.min(84, camera.lat + half));
-    for (const [x, y] of list.slice(0, 6)) if (!chunks.peek(x, y)) void chunks.load(x, y);
+    // 한 화면에 여섯 개까지만 받는다(받는 양을 묶는다). 넓게 볼 때 화면 가운데가 빠지지 않도록 가까운 것부터 고른다
+    for (const [x, y] of nearestChunks(list, camera.lon, camera.lat, 6)) if (!chunks.peek(x, y)) void chunks.load(x, y);
   };
   chunks.onLoad = () => { terrain.refresh(); meshDirty = true; };
 
@@ -330,6 +329,8 @@ async function start(): Promise<void> {
   /** 경험식 침수 판정. 계산이 도는 동안 큰 격자의 기록으로 갱신한다. */
   let judge: FloodJudge | null = null;
   let lastJudgeSource = 0, lastJudgeGlobal = 0, judgeVersionDrawn = 0;
+  /** 판정과 통계가 마지막으로 반영한 계산 시각(s). 계산이 멈췄을 때 이 값이 현재 시각과 다르면 뒤처진 것이다. */
+  let judgedSourceT = 0, judgedGlobalT = 0, statsT = 0;
   const judgeView = () => (judge && judge.any ? { runupNear: (lon: number, lat: number) => judge!.runupNear(lon, lat), inlandLimit: (r: number) => judge!.limitOf(r), frontDelay, maxLimitKm: () => judge!.maxLimitKm(), bigSources: () => judge!.bigSources() } : undefined);
   let running = false;
   let impactLanded = false;
@@ -453,6 +454,7 @@ async function start(): Promise<void> {
     if (!judgeGrids) return;
     judge = new FloodJudge(judgeGrids, judgePeriod);
     lastJudgeSource = lastJudgeGlobal = 0;
+    judgedSourceT = judgedGlobalT = statsT = 0;
     judgeVersionDrawn = 0;
     meshDirty = true;
   };
@@ -493,8 +495,10 @@ async function start(): Promise<void> {
     $('timelineEnd').textContent = fmtClock(end);
     if (!tlDragging) $<HTMLInputElement>('timeline').value = String(Math.round(time));
   };
+  let urlTimer = 0;
   /** 시나리오를 주소에 적는다. 위치, 종류, 값, 고른 해안. 그 주소를 열면 같은 발생원이 놓인다(D-043). */
   const writeUrl = (): void => {
+    clearTimeout(urlTimer);
     const src = currentSource();
     const u = new URL(location.href);
     u.searchParams.set('lang', getLocale());
@@ -509,8 +513,11 @@ async function start(): Promise<void> {
       else { u.searchParams.set('diam', String(src.diameter)); u.searchParams.set('vel', String(src.velocity)); u.searchParams.set('rho', String(src.density)); }
       if (coast) u.searchParams.set('coast', `${coast[0].toFixed(3)},${coast[1].toFixed(3)}`);
     }
-    history.replaceState(null, '', u.pathname + (u.search ? u.search : '') + u.hash);
+    // Safari는 30초에 100번 넘게 부르면 예외를 던진다. 주소를 못 적어도 앱은 돈다
+    try { history.replaceState(null, '', u.pathname + (u.search ? u.search : '') + u.hash); } catch { /* 무시 */ }
   };
+  /** 슬라이더처럼 연달아 바뀌는 값은 멈춘 뒤에 한 번만 주소에 적는다. */
+  const scheduleUrl = (): void => { clearTimeout(urlTimer); urlTimer = window.setTimeout(writeUrl, 250); };
   const readUrl = (): void => {
     const q = new URLSearchParams(location.search);
     setSeaLevel(Number(q.get('sea')), false);
@@ -558,6 +565,8 @@ async function start(): Promise<void> {
     const q = currentSource();
     if (!q || starting) return;
     starting = true;
+    // 준비하는 동안 발생원을 바꾸면 계산과 화면·주소가 어긋난다. 발생원 패널과 수위 조절을 잠근다
+    $('quakePanel').inert = true;
     $<HTMLInputElement>('seaLevel').disabled = true;
     $<HTMLInputElement>('seaLevelValue').disabled = true;
     $<HTMLButtonElement>('seaLevelReset').disabled = true;
@@ -617,6 +626,7 @@ async function start(): Promise<void> {
       }
       judge = new FloodJudge([inputs[1].grid, inputs[0].grid], periodS);
       lastJudgeSource = lastJudgeGlobal = 0;
+      judgedSourceT = judgedGlobalT = statsT = 0;
       judgeVersionDrawn = 0;
       renderer.wave = {
         levels: solver.levels.map((lv, i) => ({
@@ -664,6 +674,7 @@ async function start(): Promise<void> {
       text('readout', () => t(error instanceof LocalizedError ? error.key : 'error.sim'));
     } finally {
       starting = false;
+      $('quakePanel').inert = false;
       $<HTMLInputElement>('seaLevel').disabled = false;
       $<HTMLInputElement>('seaLevelValue').disabled = false;
       $<HTMLButtonElement>('seaLevelReset').disabled = false;
@@ -691,7 +702,7 @@ async function start(): Promise<void> {
     }
     $<HTMLInputElement>('seaLevel').value = String(level);
     $<HTMLInputElement>('seaLevelValue').value = String(level);
-    if (updateUrl) writeUrl();
+    if (updateUrl) scheduleUrl();
   };
   $('seaLevel').addEventListener('input', (e) => setSeaLevel(+(e.target as HTMLInputElement).value));
   const seaValue = $<HTMLInputElement>('seaLevelValue');
@@ -746,7 +757,7 @@ async function start(): Promise<void> {
   tl.addEventListener('pointerdown', () => { tlDragging = true; });
   tl.addEventListener('input', () => { tlDragging = true; $('clock').textContent = fmtClock(Number(tl.value)); });
   tl.addEventListener('change', () => { tlDragging = false; seekTo(Number(tl.value)); });
-  $('reset').addEventListener('click', () => { stopSim(); clearPreview(); srcPos = null; outline = null; picked = null; coast = null; pickMode = 'source'; $('simPanel').hidden = true; $('simDetail').hidden = true; writeUrl(); setCollapsed(false); showCoast(); text('readout', () => t('intro.reset')); });
+  $('reset').addEventListener('click', () => { if (starting) return; stopSim(); clearPreview(); srcPos = null; outline = null; picked = null; coast = null; pickMode = 'source'; $('simPanel').hidden = true; $('simDetail').hidden = true; writeUrl(); setCollapsed(false); showCoast(); text('readout', () => t('intro.reset')); });
   showCoast();
   const speedRange = $<HTMLInputElement>('speedRange');
   const speedValue = $<HTMLInputElement>('speedValue');
@@ -777,7 +788,7 @@ async function start(): Promise<void> {
 
   camera.onChange = () => { meshDirty = true; drawDirty = true; };
   camera.onTap = (lon, lat) => {
-    if (solver) return; // 계산 중에는 발생원을 옮기지 않는다
+    if (solver || starting) return; // 계산 중이거나 준비 중에는 발생원을 옮기지 않는다
     if (pickMode === 'coast') {
       coast = [lon, lat];
       pickMode = 'source';
@@ -825,7 +836,7 @@ async function start(): Promise<void> {
     const i = specs.findIndex((sp) => sp.role === 'coast');
     if (i >= 0) {
       const lv = solver.levels[i];
-      if (!lv.active && lv.steps === 0) parts.push(t('stats.coastWaiting'));
+      if (!lv.active && lv.steps === 0 && !solver.spent[i]) parts.push(t('stats.coastWaiting'));
       else {
         const g = lv.grid, rec = solver.readRecord(i);
         const lat = (specs[i].south + specs[i].north) / 2, cell = (40075016.686 / g.world) * Math.cos((lat * Math.PI) / 180);
@@ -848,10 +859,39 @@ async function start(): Promise<void> {
     }
     $('stats').innerHTML = parts.join('');
   };
+  /**
+   * 경험식 판정과 통계를 현재 계산 시각에 맞춘다. 기록을 동기식으로 읽으므로 계산이 흐르는 동안은 벽시계 간격을 지킨다.
+   * settled면(멈춤, 시간 슬라이더의 목표 도착, 종료) 간격을 기다리지 않는다. 전에는 흐르는 동안에만 갱신해서,
+   * 빠른 기기에서 시간을 옮기면 도시 목록과 침수 판정이 옮기기 전 값으로 남았다.
+   */
+  const refreshResults = (now: number, settled: boolean): void => {
+    if (!solver) return;
+    const time = solver.t;
+    if (judge) {
+      if (time !== judgedSourceT && (settled || now - lastJudgeSource > JUDGE_SOURCE_INTERVAL_MS)) { lastJudgeSource = now; judgedSourceT = time; judge.update(0, solver.readRecord(1), time); }
+      if (time !== judgedGlobalT && (settled || now - lastJudgeGlobal > JUDGE_GLOBAL_INTERVAL_MS)) { lastJudgeGlobal = now; judgedGlobalT = time; judge.update(1, solver.readRecord(0), time); }
+      // 판정이 바뀌면 꼭짓점의 물 높이를 다시 넣어야 하므로 메시를 다시 만든다
+      if (judge.any && judge.version !== judgeVersionDrawn && mesh && mesh.minEdgeKm <= Math.max(3, judge.maxLimitKm())) { judgeVersionDrawn = judge.version; meshDirty = true; }
+    }
+    if (time !== statsT && (settled || now - lastStats > STATS_INTERVAL_MS)) { lastStats = now; statsT = time; updateStats(); }
+  };
   const shape = document.getElementById('faultShape') as unknown as SVGPolygonElement, trench = document.getElementById('faultTrench') as unknown as SVGLineElement;
   const turbo = Number(new URLSearchParams(location.search).get('turbo') ?? 0);
   let last = performance.now();
+  // 폰에서 앱을 오래 떠나 있으면 브라우저가 그래픽 컨텍스트를 거둬 간다. 계산 상태가 텍스처에 있어 이어 갈 수 없으므로
+  // 그리기를 멈추고 다시 불러오게 한다. 시나리오는 주소에 있어 같은 발생원으로 돌아온다.
+  let contextLost = false;
+  canvas.addEventListener('webglcontextlost', (e) => {
+    e.preventDefault();
+    contextLost = true;
+    running = false;
+    const el = $('fatal');
+    el.hidden = false;
+    text(el, () => t('error.context'));
+    el.addEventListener('click', () => location.reload(), { once: true });
+  });
   const frame = (now: number): void => {
+    if (contextLost) return;
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
     if (camera.tick(dt)) { meshDirty = true; drawDirty = true; }
@@ -886,14 +926,9 @@ async function start(): Promise<void> {
         else if (judge && solver.t - judge.lastChangeT > STALE_S) finished = 'stale';
         if (finished) { running = false; drawDirty = true; }
       }
-      if (now - lastStats > STATS_INTERVAL_MS) { lastStats = now; updateStats(); }
-      if (judge) {
-        if (now - lastJudgeSource > JUDGE_SOURCE_INTERVAL_MS) { lastJudgeSource = now; judge.update(0, solver.readRecord(1), solver.t); }
-        if (now - lastJudgeGlobal > JUDGE_GLOBAL_INTERVAL_MS) { lastJudgeGlobal = now; judge.update(1, solver.readRecord(0), solver.t); }
-        // 판정이 바뀌면 꼭짓점의 물 높이를 다시 넣어야 하므로 메시를 다시 만든다
-        if (judge.any && judge.version !== judgeVersionDrawn && mesh && mesh.minEdgeKm <= Math.max(3, judge.maxLimitKm())) { judgeVersionDrawn = judge.version; meshDirty = true; }
-      }
     }
+    // 계산이 흐르는 동안은 간격을 두고, 멈췄거나 목표 시각에 닿았으면 바로 판정과 통계를 맞춘다
+    if (solver) refreshResults(now, !running || solver.t >= Math.min(stopAt, SIM_MAX_S) - solver.dt);
     // 새 메시가 얼마나 잘게 나뉘었는지 보고 조각을 요청한다. 순서를 바꾸면 확대 직후에 이전 메시를 기준으로 판단하게 된다.
     if (meshDirty && now - lastBuild >= REBUILD_INTERVAL_MS) { rebuild(now); requestChunks(); }
     if (drawDirty && mesh) {

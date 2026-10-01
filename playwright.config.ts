@@ -10,6 +10,8 @@ export default defineConfig({
     baseURL: 'http://localhost:5183',
     locale: 'ko-KR', // Existing scenarios assert Korean copy; i18n tests override this.
     viewport: { width: 1440, height: 900 },
+    // 누를 수 없는 요소를 기다리다 검사 전체 시간(8분)을 다 쓰지 않게 한다
+    actionTimeout: 30_000,
     // GPU=1이면 WSLg 창(헤디드)에 Mesa d3d12 드라이버를 강제해 실제 GPU를 쓴다(D-041, 약 50배 빠르다). 아니면 헤드리스 SwiftShader.
     ...(process.env.GPU === '1'
       ? { headless: false, launchOptions: { args: ['--ignore-gpu-blocklist'], env: { ...process.env, MESA_LOADER_DRIVER_OVERRIDE: 'd3d12', GALLIUM_DRIVER: 'd3d12', MESA_D3D12_DEFAULT_ADAPTER_NAME: 'NVIDIA' } } }

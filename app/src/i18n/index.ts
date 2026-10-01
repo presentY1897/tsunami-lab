@@ -86,7 +86,7 @@ export function setLocale(next: Locale): void {
   try { localStorage.setItem('locale', next); } catch { /* Private browsing may block storage. */ }
   const url = new URL(location.href);
   url.searchParams.set('lang', next);
-  history.replaceState(null, '', url.pathname + url.search + url.hash);
+  try { history.replaceState(null, '', url.pathname + url.search + url.hash); } catch { /* Safari throttles repeated calls. */ }
   applyDocument();
 }
 export function initI18n(): void {

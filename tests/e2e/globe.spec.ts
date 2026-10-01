@@ -64,6 +64,8 @@ test('폰 크기 화면에서 지구가 뜨고, 첫 화면 전송량이 예산 �
   const linesBytes = await page.evaluate(() => window.__app.linesBytes);
   expect(linesBytes).toBeGreaterThan(10 * 1024);
   expect(linesBytes).toBeLessThan(60 * 1024);
+  // 표시 단추들은 '표시 설정'(details) 안에 있다. 펼쳐서 누른다
+  await page.locator('#moreInfo').evaluate((d) => { (d as HTMLDetailsElement).open = true; });
   await page.locator('#linesToggle').click();
   expect(await page.evaluate(() => window.__app.lines.visible)).toBe(false);
   await page.locator('#linesToggle').click();
@@ -124,7 +126,7 @@ test('폰 크기 화면에서 지구가 뜨고, 첫 화면 전송량이 예산 �
   await expect(page.locator('#simPanel')).toBeAttached({ timeout: 30_000 });
   await page.waitForFunction(() => window.__app.solver !== null, null, { timeout: 30_000 });
   expect(await page.evaluate(() => window.__app.running)).toBe(false);
-  await expect(page.locator('#simstate')).toHaveText('재생을 누르면 시작합니다');
+  await expect(page.locator('#simstate')).toHaveText('재생 대기');
   await page.evaluate(() => window.__app.setCollapsed(false));
   await expect(page.locator('#simPanel')).toBeVisible();
   await page.locator('#speedMax').click();
@@ -148,7 +150,7 @@ test('폰 크기 화면에서 지구가 뜨고, 첫 화면 전송량이 예산 �
   expect(Math.abs(wave.far)).toBeLessThan(1e-6);
   // 경험식 판정: 해안을 고르지 않은 곳도 앞바다 파고로 처오름을 내어 도시 목록에 든다
   await page.waitForFunction(() => window.__app.judge?.any === true, null, { timeout: 60_000 });
-  // 판정은 벽시계 2초마다 갱신되므로, 도시 목록이 채워질 때까지 기다린다(실제 GPU에서는 계산이 판정보다 훨씬 빠르다)
+  // 판정은 흐르는 동안 벽시계 2초마다, 목표 시각에 닿으면 바로 갱신된다. 도시 목록이 채워질 때까지 기다린다
   await page.waitForFunction(() => (window.__app.judge?.cityImpacts((window.__app.cities as unknown as { cities: unknown[] }).cities, 8).length ?? 0) > 2, null, { timeout: 60_000, polling: 500 });
   const impacts = await page.evaluate(() => window.__app.judge!.cityImpacts((window.__app.cities as unknown as { cities: unknown[] }).cities, 8));
   expect(impacts.length).toBeGreaterThan(2);
@@ -191,7 +193,7 @@ test('폰 크기 화면에서 지구가 뜨고, 첫 화면 전송량이 예산 �
   await page.locator('#reset').click();
   await page.evaluate(() => { const a = window.__app; a.camera.jumpTo(134, 39.5, a.camera.altFit); a.tap(134, 39.5); a.setImpact({ diameter: 500 }); });
   await expect(page.locator('#impactFields')).toBeVisible();
-  await expect(page.locator('#faultinfo')).toContainText('충돌 에너지');
+  await expect(page.locator('#faultinfo')).toContainText('에너지');
   await page.locator('#go').click();
   await expect(page.locator('#simPanel')).toBeAttached({ timeout: 60_000 });
   await page.waitForFunction(() => window.__app.solver !== null, null, { timeout: 60_000 });

@@ -17,22 +17,43 @@ interface Program {
   uniforms: Map<string, { loc: WebGLUniformLocation; type: number }>;
 }
 
+/** 컨텍스트 하나가 같이 쓰는 것. 삼각형 하나짜리 정점 배열과, 컴파일한 계산 셰이더. */
+interface Shared {
+  vao: WebGLVertexArrayObject;
+  programs: Map<string, Program>;
+}
+// 격자마다 따로 만들면 같은 셰이더를 격자 수만큼 다시 컴파일하고, 다시 일으킬 때마다 지워지지 않은 프로그램이 쌓인다.
+// 컨텍스트에 한 벌만 두고 계속 쓴다.
+const shared = new WeakMap<WebGL2RenderingContext, Shared>();
+
 export class GpuGrid {
   private readonly vao: WebGLVertexArrayObject;
-  private readonly programs = new Map<string, Program>();
+  private readonly programs: Map<string, Program>;
 
   constructor(readonly gl: WebGL2RenderingContext) {
     if (!gl.getExtension('EXT_color_buffer_float')) {
       throw new LocalizedError('error.float');
     }
-    this.vao = gl.createVertexArray()!;
-    gl.bindVertexArray(this.vao);
-    const buf = gl.createBuffer()!;
-    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(0);
-    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-    gl.bindVertexArray(null);
+    let sh = shared.get(gl);
+    if (!sh) {
+      const vao = gl.createVertexArray()!;
+      gl.bindVertexArray(vao);
+      const buf = gl.createBuffer()!;
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+      gl.enableVertexAttribArray(0);
+      gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+      gl.bindVertexArray(null);
+      sh = { vao, programs: new Map() };
+      shared.set(gl, sh);
+    }
+    this.vao = sh.vao;
+    this.programs = sh.programs;
+  }
+
+  /** 셰이더를 미리 컴파일해 둔다. 첫 스텝에서 컴파일하면 재생을 누르거나 격자가 깨어나는 순간에 화면이 끊긴다. */
+  warm(frags: string[]): void {
+    for (const f of frags) this.program(f);
   }
 
   private program(frag: string): Program {
@@ -47,11 +68,15 @@ export class GpuGrid {
       return sh;
     };
     const program = gl.createProgram()!;
-    gl.attachShader(program, compile(gl.VERTEX_SHADER, VERT));
-    gl.attachShader(program, compile(gl.FRAGMENT_SHADER, frag));
+    const vs = compile(gl.VERTEX_SHADER, VERT), fs = compile(gl.FRAGMENT_SHADER, frag);
+    gl.attachShader(program, vs);
+    gl.attachShader(program, fs);
     gl.bindAttribLocation(program, 0, 'position');
     gl.linkProgram(program);
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(`계산 셰이더 연결 실패: ${gl.getProgramInfoLog(program)}`);
+    // 연결이 끝나면 셰이더 객체는 필요 없다
+    gl.deleteShader(vs);
+    gl.deleteShader(fs);
     const uniforms = new Map<string, { loc: WebGLUniformLocation; type: number }>();
     const n = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS) as number;
     for (let i = 0; i < n; i++) {
@@ -143,6 +168,7 @@ export class GpuGrid {
     return out;
   }
 
+  /** 이 격자의 텍스처와 렌더 타깃을 지운다. 셰이더와 정점 배열은 컨텍스트가 같이 쓰므로 남긴다. */
   dispose(targets: Target[], textures: WebGLTexture[] = []): void {
     for (const t of targets) { this.gl.deleteFramebuffer(t.fbo); this.gl.deleteTexture(t.tex); }
     for (const t of textures) this.gl.deleteTexture(t);

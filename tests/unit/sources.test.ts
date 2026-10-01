@@ -61,6 +61,34 @@ describe('지진 단층', () => {
     expect(mean).toBeCloseTo(f.meanSlip, 6);
     expect(f.peakSlip / f.meanSlip).toBeGreaterThan(1.6);
   });
+  it('소단층을 줄로 묶어 계산한 변위는 소단층마다 따로 더한 값과 같다', () => {
+    // 경사이동만(90도)과 주향이동이 섞인 경우(60도) 모두. 기준은 소단층마다 okadaUz를 부르는 원래 식이다.
+    for (const rake of [90, 60]) {
+      const p: QuakeParams = { ...tohoku, rake, slipModel: 'tapered' };
+      const q = buildQuakeField(p);
+      const th = p.strike * DEG, kx = 111.195 * Math.cos(p.lat * DEG), ky = 111.195;
+      const Lk = q.fault.L / 1000, Wh = (q.fault.W / 1000) * Math.cos(q.fault.dipRad);
+      const cd = Math.cos(q.fault.dipRad), sd = Math.sin(q.fault.dipRad);
+      const reference = (lon: number, lat: number): number => {
+        const E = (lon - p.lon) * kx, N = (lat - p.lat) * ky;
+        const along = E * Math.sin(th) + N * Math.cos(th) + Lk / 2, down = E * Math.sin(th + Math.PI / 2) + N * Math.cos(th + Math.PI / 2) + Wh / 2;
+        let sum = 0;
+        for (const s of q.subfaults) {
+          const botC = s.c0 + s.wid;
+          sum += okadaUz(along - s.a0, botC * cd - down, s.len, s.wid, p.topKm + botC * sd, q.fault.dipRad, s.slip * Math.cos(rake * DEG), s.slip * Math.sin(rake * DEG));
+        }
+        return sum;
+      };
+      let maxAbs = 0, maxDiff = 0;
+      for (let lat = 35; lat <= 41.5; lat += 0.37) for (let lon = 139.5; lon <= 146; lon += 0.41) {
+        const a = q.uz(lon, lat), b = reference(lon, lat);
+        maxAbs = Math.max(maxAbs, Math.abs(b));
+        maxDiff = Math.max(maxDiff, Math.abs(a - b));
+      }
+      expect(maxAbs).toBeGreaterThan(3);
+      expect(maxDiff).toBeLessThan(1e-9);
+    }
+  });
   it('융기는 해구 쪽(단층 윗변 쪽)에서 일어난다', () => {
     const q = buildQuakeField({ ...tohoku, slipModel: 'tapered' });
     // 주향 193도면 경사 방향은 283도(서북서). 해구는 동쪽이다.
