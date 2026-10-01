@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { childRectInParent, type GridSpec } from '../geo/grid';
-import { cosLatAtPy, equatorMetersPerPixel, worldSize } from '../geo/mercator';
-import { GRAVITY } from '../physics/constants';
+import { cosLatAtPy, equatorMetersPerPixel, worldSize } from '../../app/src/geo/mercator';
+import { GRAVITY } from '../../app/src/physics/constants';
 import { COPY_FRAG, GpuCompute } from './compute';
 import { CONTINUITY_FRAG, MOMENTUM_FRAG, RECORD_FRAG, RENDER_ETA_FRAG } from './shaders';
 

@@ -1,5 +1,5 @@
-import type { ImpactParams } from '../../../src/physics/impact';
-import { buildQuakeField, type QuakeParams } from '../../../src/physics/quake';
+import type { ImpactParams } from '../physics/impact';
+import { buildQuakeField, type QuakeParams } from '../physics/quake';
 import { buildImpactModel, type ImpactModel } from './impact';
 
 export type SourceParams = QuakeParams | ImpactParams;

@@ -1,6 +1,6 @@
-import { buildQuakeField, type QuakeField, type QuakeParams } from '../../../src/physics/quake';
+import { buildQuakeField, type QuakeField, type QuakeParams } from '../physics/quake';
 import type { SourceModel } from './source';
-import { pxToLon, pyToLat } from '../../../src/geo/mercator';
+import { pxToLon, pyToLat } from '../geo/mercator';
 import type { ChunkStore } from '../data/chunks';
 import { planGlobal, planSource, type LevelSpec } from './plan';
 import type { EarthGrid } from '../data/earth';

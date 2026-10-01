@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cosLatAtPy, latToPy, lonToPx, pxToLon, pyToLat, DEG } from '../../src/geo/mercator';
+import { cosLatAtPy, latToPy, lonToPx, pxToLon, pyToLat, DEG } from '../../app/src/geo/mercator';
 import { floodFillSea, shoreDistance } from '../../src/geo/dem';
 import { childRectInParent, type GridSpec } from '../../src/geo/grid';
 

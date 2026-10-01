@@ -1,7 +1,7 @@
 // 실제 앱(app/)의 GPU 계산부가 CPU 기준 구현과 같은 답을 내는지, 순환 경계가 맞는지 확인한다. Playwright 테스트가 이 페이지를 연다.
 import { NestedSolver } from '../app/src/sim/nested';
 import { SweSolver, type GridInput } from '../app/src/sim/solver';
-import { createState, stepSwe, uniformGrid } from '../src/physics/swe-cpu';
+import { createState, stepSwe, uniformGrid } from '../app/src/physics/swe-cpu';
 
 const gl = document.createElement('canvas').getContext('webgl2')!;
 const base = { zoom: 2, px0: 0, py0: 0, world: 1024, eqCell: 1 };

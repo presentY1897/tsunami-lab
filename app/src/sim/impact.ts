@@ -4,7 +4,7 @@
 // 1차원 방사형 선형 모형으로 같은 공동을 미리 돌려 보고 기준 거리에서의 파고가 Ward & Asphaug 값과 맞도록 진폭을 조정한다.
 // 기준 거리는 모든 단계에 같게 잡는다(전 지구 격자 셀의 여섯 배). 그래야 단계 사이 경계에서 파고가 어긋나지 않는다.
 // 천수방정식은 1/√r로 줄지만 실제 충돌파는 분산 때문에 1/r에 가깝다. 그 차이는 기준 거리 밖에서 √(r₀/r) 배율로 메운다.
-import { transientCraterDiameter, type ImpactParams } from '../../../src/physics/impact';
+import { transientCraterDiameter, type ImpactParams } from '../physics/impact';
 
 const GRAVITY = 9.81;
 

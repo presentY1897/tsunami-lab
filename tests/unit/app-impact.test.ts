@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { buildImpactModel } from '../../app/src/sim/impact';
 import { buildSourceModel } from '../../app/src/sim/source';
 import { gainRefRadius } from '../../app/src/sim/global';
-import type { ImpactParams } from '../../src/physics/impact';
+import type { ImpactParams } from '../../app/src/physics/impact';
 
 const p: ImpactParams = { kind: 'impact', lon: 134, lat: 39.5, diameter: 500, velocity: 20, density: 3000, angle: 45 };
 const ref = gainRefRadius(39.5); // 약 181 km

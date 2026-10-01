@@ -18,7 +18,7 @@ npm run test:e2e      # 현재 앱과 프로토타입의 브라우저 검사
 
 브라우저 검사를 처음 실행할 때는 `npx playwright install chromium`이 필요하다. `npm run test:e2e:gpu`는 WSLg와 Mesa d3d12를 사용하는 실제 GPU 검증 환경용이다([D-041](docs/decisions/DECISIONS.md#d-041-검증은-wslg-창에-mesa-d3d12-드라이버를-강제해-실제-gpu로-돌린다-2026-09-23)).
 
-`npm run dev`, `npm run build`는 이전 프로토타입용이다. `npm run check`의 빌드 대상도 프로토타입이므로 현재 앱 빌드는 `npm run app:build`로 확인한다.
+`npm run dev`, `npm run build`는 이전 프로토타입용이다. `npm run check`는 타입 검사와 단위 테스트 뒤에 프로토타입과 현재 앱을 모두 빌드한다.
 
 ## 현재 사용 흐름
 
@@ -71,11 +71,11 @@ Cloudflare Pages에서는 저장소 루트를 기준으로 빌드 명령 `npm ru
 ## 폴더
 
 ```text
-app/src       현재 앱: 지구 화면, 지형, 자료 로더, GPU 계산, 침수 판정
+app/src       현재 앱: 지구 화면, 지형, 자료 로더, GPU 계산, 침수 판정, 좌표·발생원 모형과 CPU 기준 솔버
 app/public    자체 호스팅하는 지형·경계선·도시 자료
 scripts       자료 생성 스크립트
-src/physics   현재 앱도 재사용하는 발생원 모형과 CPU 기준 솔버
-src/geo       좌표 모듈과 이전 프로토타입의 격자·지형 처리
+src/physics   이전 프로토타입의 소행성 공동과 발생원 래스터화
+src/geo       이전 프로토타입의 격자·지형 처리
 src/app       이전 프로토타입의 화면과 시뮬레이션 조립
 src/gpu       이전 프로토타입의 GPU 솔버
 src/render    이전 프로토타입의 three.js 렌더링

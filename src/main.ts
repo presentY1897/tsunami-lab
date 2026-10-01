@@ -5,12 +5,12 @@ import { DEFAULT_SCENARIO, MANNING_CHOICES, PRESETS, type Preset, type Scenario 
 import { buildSimulation, type Simulation } from './app/simulation';
 import { planLevels, QUALITIES, type QualityName } from './geo/domain';
 import { cellSizeAtRow, gridBounds, type GridSpec } from './geo/grid';
-import { DEG, haversine } from './geo/mercator';
+import { DEG, haversine } from '../app/src/geo/mercator';
 import { TerrariumTileProvider } from './geo/tiles';
 import { BASEMAP_ATTRIBUTION, Picker, renderDrape } from './picker/picker';
 import { autoStrike } from './physics/autostrike';
-import { transientCraterDiameter, type ImpactParams } from './physics/impact';
-import { buildQuakeField, type QuakeParams } from './physics/quake';
+import { transientCraterDiameter, type ImpactParams } from '../app/src/physics/impact';
+import { buildQuakeField, type QuakeParams } from '../app/src/physics/quake';
 import { sourceExtent } from './physics/source';
 import type { OverlayMode } from './render/terrain';
 import { SceneView } from './render/view';

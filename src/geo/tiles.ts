@@ -1,4 +1,4 @@
-import { TILE_SIZE } from './mercator';
+import { TILE_SIZE } from '../../app/src/geo/mercator';
 
 /** 타일 하나의 표고(m)를 돌려주는 공급자. 브라우저 구현과 테스트용 합성 구현을 바꿔 끼울 수 있다. */
 export interface TileProvider {

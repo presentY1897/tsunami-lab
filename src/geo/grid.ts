@@ -1,4 +1,4 @@
-import { cosLatAtPy, equatorMetersPerPixel, lonToPx, latToPy, pxToLon, pyToLat } from './mercator';
+import { cosLatAtPy, equatorMetersPerPixel, lonToPx, latToPy, pxToLon, pyToLat } from '../../app/src/geo/mercator';
 
 /**
  * 한 단계(level)의 계산 격자. 줌 z의 전역 픽셀 좌표에서 (px0, py0)를 왼쪽 위 모서리로 하는 nx×ny 셀.

@@ -1,5 +1,5 @@
 import type { GridSpec, LonLatBox } from './grid';
-import { latToPy, lonToPx } from './mercator';
+import { latToPy, lonToPx } from '../../app/src/geo/mercator';
 
 export type QualityName = 'tiny' | 'low' | 'medium' | 'high';
 

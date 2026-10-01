@@ -1,4 +1,4 @@
-import { latToPy, lonToPx, pxToLon, pyToLat } from '../../../src/geo/mercator';
+import { latToPy, lonToPx, pxToLon, pyToLat } from '../geo/mercator';
 import type { GridInput } from './solver';
 
 /**

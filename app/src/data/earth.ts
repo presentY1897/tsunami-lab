@@ -1,4 +1,4 @@
-import { latToPy, lonToPx } from '../../../src/geo/mercator';
+import { latToPy, lonToPx } from '../geo/mercator';
 import { browserGunzip } from './chunks';
 import { assembleGrid, splitFile } from './codec';
 

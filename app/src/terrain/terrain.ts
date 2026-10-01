@@ -1,4 +1,4 @@
-import { latToPy, lonToPx } from '../../../src/geo/mercator';
+import { latToPy, lonToPx } from '../geo/mercator';
 import type { EarthGrid } from '../data/earth';
 import { CHUNK_COLS, CHUNK_SIZE, CHUNK_ZOOM, chunkExists } from '../data/layout';
 import { perlin3 } from './noise';

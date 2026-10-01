@@ -1,6 +1,6 @@
 import type { QualityName } from '../geo/domain';
-import type { ImpactParams } from '../physics/impact';
-import type { QuakeParams } from '../physics/quake';
+import type { ImpactParams } from '../../app/src/physics/impact';
+import type { QuakeParams } from '../../app/src/physics/quake';
 import type { SourceParams } from '../physics/source';
 
 export interface Scenario {

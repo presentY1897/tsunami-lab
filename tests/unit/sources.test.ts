@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { okadaUz } from '../../src/physics/okada';
-import { buildQuakeField, faultFromMagnitude, subdivideFault, type QuakeParams } from '../../src/physics/quake';
-import { buildImpactCavity, buildImpactField, transientCraterDiameter, type ImpactParams } from '../../src/physics/impact';
+import { okadaUz } from '../../app/src/physics/okada';
+import { buildQuakeField, faultFromMagnitude, subdivideFault, type QuakeParams } from '../../app/src/physics/quake';
+import { transientCraterDiameter, type ImpactParams } from '../../app/src/physics/impact';
+import { buildImpactCavity, buildImpactField } from '../../src/physics/impact';
 
 const DEG = Math.PI / 180;
 

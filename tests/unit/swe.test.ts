@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createState, stableDt, stepSwe, totalVolume, uniformGrid } from '../../src/physics/swe-cpu';
+import { createState, stableDt, stepSwe, totalVolume, uniformGrid } from '../../app/src/physics/swe-cpu';
 
 const G = 9.81;
 

@@ -1,5 +1,5 @@
 import { fetchMosaic } from '../geo/dem';
-import { DEG, latToPy, lonToPx } from '../geo/mercator';
+import { DEG, latToPy, lonToPx } from '../../app/src/geo/mercator';
 import type { TileProvider } from '../geo/tiles';
 
 /**

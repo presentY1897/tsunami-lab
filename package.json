@@ -12,7 +12,7 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "test:e2e:gpu": "GPU=1 playwright test",
-    "check": "npm run typecheck && npm run test && npm run build",
+    "check": "npm run typecheck && npm run test && vite build && vite build --config app/vite.config.ts",
     "app:dev": "vite --config app/vite.config.ts",
     "app:build": "tsc --noEmit && vite build --config app/vite.config.ts",
     "app:preview": "vite preview --config app/vite.config.ts",

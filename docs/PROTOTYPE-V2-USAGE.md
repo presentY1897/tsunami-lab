@@ -38,8 +38,8 @@ npm run test:e2e   # 헤드리스 브라우저 검증 (처음이면 npx playwrig
 ## 폴더
 
 ```
-src/geo       Mercator 수학, 격자 계획, 타일 디코딩, DEM 합성
-src/physics   Okada, 단층, 소행성, 발생원 래스터화, CPU 기준 솔버
+src/geo       격자 계획, 타일 디코딩, DEM 합성 (Mercator 수학은 app/src/geo)
+src/physics   소행성, 발생원 래스터화 (Okada, 단층, CPU 기준 솔버는 app/src/physics)
 src/gpu       셰이더와 다단계 GPU 솔버
 src/render    3D 장면, 지형과 수면 재질
 src/picker    설정용 2D 지도, 지도 입히기

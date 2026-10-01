@@ -8,8 +8,8 @@ import { GLOBAL_FILE, chunkFile } from '../../app/src/data/layout';
 import { buildGlobalGrid, buildLevelGrid, GLOBAL_ROW0, GLOBAL_ROWS, planSourceGrid, SOURCE_SIZE } from '../../app/src/sim/global';
 import { COAST_SIZE, COAST_ZOOM, PARENT_MARGIN, planCoastChain, planGlobal, type LevelSpec } from '../../app/src/sim/plan';
 import { Terrain } from '../../app/src/terrain/terrain';
-import { latToPy, lonToPx } from '../../src/geo/mercator';
-import type { QuakeParams } from '../../src/physics/quake';
+import { latToPy, lonToPx } from '../../app/src/geo/mercator';
+import type { QuakeParams } from '../../app/src/physics/quake';
 import { buildSourceModel } from '../../app/src/sim/source';
 
 const gunzip: Gunzip = async (b) => new Uint8Array(gunzipSync(b));

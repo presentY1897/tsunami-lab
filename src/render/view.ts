@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { MapControls } from 'three/addons/controls/MapControls.js';
 import { childRectInParent, type GridSpec } from '../geo/grid';
-import { cosLatAtPy, DEG, EARTH_CIRCUMFERENCE, latToPy, lonToPx } from '../geo/mercator';
+import { cosLatAtPy, DEG, EARTH_CIRCUMFERENCE, latToPy, lonToPx } from '../../app/src/geo/mercator';
 import type { GpuSolver } from '../gpu/solver';
 import { makeGridGeometry, makeTerrainMaterial, OVERLAY_INDEX, type OverlayMode } from './terrain';
 import { makeWaterMaterial } from './water';

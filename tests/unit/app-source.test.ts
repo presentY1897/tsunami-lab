@@ -6,7 +6,7 @@ import { makeEarthGrid } from '../../app/src/data/earth';
 import { GLOBAL_FILE } from '../../app/src/data/layout';
 import { autoStrike, buildGlobalGrid } from '../../app/src/sim/global';
 import { Terrain } from '../../app/src/terrain/terrain';
-import type { QuakeParams } from '../../src/physics/quake';
+import type { QuakeParams } from '../../app/src/physics/quake';
 import { buildSourceModel } from '../../app/src/sim/source';
 
 const file = splitFile(new Uint8Array(readFileSync(new URL(`../../app/public/${GLOBAL_FILE}`, import.meta.url))));

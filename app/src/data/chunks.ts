@@ -1,4 +1,4 @@
-import { latToPy, lonToPx } from '../../../src/geo/mercator';
+import { latToPy, lonToPx } from '../geo/mercator';
 import { decodeBlock, splitFile } from './codec';
 import { CHUNK_COLS, CHUNK_SIZE, CHUNK_ZOOM, chunkExists, chunkFile } from './layout';
 

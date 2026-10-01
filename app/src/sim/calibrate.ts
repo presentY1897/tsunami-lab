@@ -1,4 +1,4 @@
-import { pxToLon, pyToLat } from '../../../src/geo/mercator';
+import { pxToLon, pyToLat } from '../geo/mercator';
 import type { ImpactModel } from './impact';
 import { SweSolver, type GridInput } from './solver';
 

@@ -1,7 +1,7 @@
 // GPU 셰이더가 CPU 기준 구현과 같은 답을 내는지 브라우저에서 확인한다. Playwright 테스트가 이 페이지를 연다.
 import * as THREE from 'three';
 import { GpuSolver, type LevelInput } from '../src/gpu/solver';
-import { createState, stepSwe, uniformGrid } from '../src/physics/swe-cpu';
+import { createState, stepSwe, uniformGrid } from '../app/src/physics/swe-cpu';
 import type { GridSpec } from '../src/geo/grid';
 import { floodFillSea } from '../src/geo/dem';
 

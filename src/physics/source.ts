@@ -1,9 +1,10 @@
 import type { LevelDem } from '../geo/dem';
 import { cellLat, cellLon, cellSizeAtRow, type LonLatBox } from '../geo/grid';
-import { DEG } from '../geo/mercator';
-import { KM_PER_DEG } from './constants';
-import { buildImpactCavity, buildImpactField, type ImpactField, type ImpactParams } from './impact';
-import { buildQuakeField, type QuakeField, type QuakeParams } from './quake';
+import { DEG } from '../../app/src/geo/mercator';
+import { KM_PER_DEG } from '../../app/src/physics/constants';
+import type { ImpactParams } from '../../app/src/physics/impact';
+import { buildImpactCavity, buildImpactField, type ImpactField } from './impact';
+import { buildQuakeField, type QuakeField, type QuakeParams } from '../../app/src/physics/quake';
 
 export type SourceParams = QuakeParams | ImpactParams;
 

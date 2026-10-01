@@ -1,6 +1,6 @@
 import type { GridSpec } from './grid';
 import { cellSizeAtRow } from './grid';
-import { TILE_SIZE } from './mercator';
+import { TILE_SIZE } from '../../app/src/geo/mercator';
 import type { TileProvider } from './tiles';
 
 export interface LevelDem {
